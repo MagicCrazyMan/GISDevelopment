@@ -3,10 +3,12 @@ package org.example.app;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.view.MapView;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -73,10 +75,15 @@ public class AppView {
 
     private void initShapefileButton() {
         loadShapefileBtn = new Button();
-        loadShapefileBtn.setText("oad shapefile");
+        loadShapefileBtn.setText("load shapefile");
+        loadShapefileBtn.setDefaultButton(true);
+        loadShapefileBtn.setOnMouseClicked(mouseEvent -> controller.loadShapefile(primaryStage, mapView));
+        StackPane.setAlignment(loadShapefileBtn, Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(loadShapefileBtn, new Insets(15));
+        mainPane.getChildren().add(loadShapefileBtn);
     }
 
-   public void dispose() {
+    public void dispose() {
         if (Objects.nonNull(mapView)) {
             mapView.dispose();
         }
