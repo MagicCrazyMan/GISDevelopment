@@ -3,14 +3,10 @@ package org.example.app;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.view.MapView;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
@@ -27,7 +23,7 @@ public class AppView {
     ArcGISMap eagleMap;
     Button loadShapefileBtn;
 
-    MapView mapView;
+    MapView mainMapView;
     MapView eagleMapView;
 
     private AppController controller = new AppController();
@@ -56,11 +52,11 @@ public class AppView {
     }
 
     private void initMapView() {
-        mapView = new MapView();
-        mapView.setPrefSize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT);
-        mainPane.getChildren().add(mapView);
+        mainMapView = new MapView();
+        mainMapView.setPrefSize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT);
+        mainPane.getChildren().add(mainMapView);
         mainMap = new ArcGISMap(Basemap.createImagery());
-        mapView.setMap(mainMap);
+        mainMapView.setMap(mainMap);
     }
 
     private void initEagleMap() {
@@ -77,15 +73,15 @@ public class AppView {
         loadShapefileBtn = new Button();
         loadShapefileBtn.setText("load shapefile");
         loadShapefileBtn.setDefaultButton(true);
-        loadShapefileBtn.setOnMouseClicked(mouseEvent -> controller.loadShapefile(primaryStage, mapView));
+        loadShapefileBtn.setOnMouseClicked(mouseEvent -> controller.loadShapefile(primaryStage, mainMapView));
         StackPane.setAlignment(loadShapefileBtn, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(loadShapefileBtn, new Insets(15));
         mainPane.getChildren().add(loadShapefileBtn);
     }
 
     public void dispose() {
-        if (Objects.nonNull(mapView)) {
-            mapView.dispose();
+        if (Objects.nonNull(mainMapView)) {
+            mainMapView.dispose();
         }
     }
 }
