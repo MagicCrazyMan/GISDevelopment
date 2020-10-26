@@ -2,7 +2,10 @@ package org.example.app;
 
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.mapping.view.ViewpointChangedEvent;
+import com.esri.arcgisruntime.mapping.view.ViewpointChangedListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -67,6 +70,12 @@ public class AppView {
         StackPane.setMargin(eagleMapView, new Insets(15));
         StackPane.setAlignment(eagleMapView, Pos.BOTTOM_LEFT);
         mainPane.getChildren().add(eagleMapView);
+        // add viewpoint changed listener to mainMapView, and sync the viewpoint to eagleMapView
+        mainMapView.addViewpointChangedListener(viewpointChangedEvent -> {
+            // setViewpointAsync may act in a higher performance, but it will also cause delay (because eagleMapView update viewpoint async from mainMapView, not sync)
+            // so, for better visual effect, we will use sync method here
+            eagleMapView.setViewpoint(viewpointChangedEvent.getSource().getCurrentViewpoint(Viewpoint.Type.BOUNDING_GEOMETRY));
+        });
     }
 
     private void initShapefileButton() {
