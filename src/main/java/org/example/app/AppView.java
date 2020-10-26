@@ -10,7 +10,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 
 import java.util.Objects;
@@ -66,6 +69,11 @@ public class AppView {
         eagleMapView = new MapView();
         eagleMapView.setMaxSize(300, 200);
         eagleMap = new ArcGISMap(Basemap.createStreets());
+        eagleMapView.setEnableMousePan(false);
+        eagleMapView.setEnableMouseZoom(false);
+        eagleMapView.setEnableTouchPan(false);
+        eagleMapView.setEnableTouchRotate(false);
+        eagleMapView.setEnableTouchZoom(false);
         eagleMapView.setMap(eagleMap);
         StackPane.setMargin(eagleMapView, new Insets(15));
         StackPane.setAlignment(eagleMapView, Pos.BOTTOM_LEFT);
