@@ -31,6 +31,7 @@ public class AppView {
     ArcGISMap mainMap;
     ArcGISMap eagleMap;
     Button loadShapefileBtn;
+    Button loadGeoDatabaseBtn;
 
     MapView mainMapView;
     MapView eagleMapView;
@@ -47,6 +48,7 @@ public class AppView {
         initMapView();
         initEagleMap();
         initShapefileButton();
+        initGeoDatabaseButton();
     }
 
     private void initMainWindow() {
@@ -105,6 +107,15 @@ public class AppView {
         StackPane.setAlignment(loadShapefileBtn, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(loadShapefileBtn, new Insets(15));
         mainPane.getChildren().add(loadShapefileBtn);
+    }
+
+    private void initGeoDatabaseButton() {
+        loadGeoDatabaseBtn = new Button();
+        loadGeoDatabaseBtn.setText("load geodatabse");
+        loadGeoDatabaseBtn.setOnMouseClicked(mouseEvent -> controller.loadGeoDatabase(primaryStage, mainMapView));
+        StackPane.setAlignment(loadGeoDatabaseBtn, Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(loadGeoDatabaseBtn, new Insets(15,150,15,15));
+        mainPane.getChildren().add(loadGeoDatabaseBtn);
     }
 
     public void dispose() {
