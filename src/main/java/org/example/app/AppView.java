@@ -108,6 +108,8 @@ public class AppView {
         primaryStage.setTitle("Map Window");
         primaryStage.setMinWidth(MAIN_WINDOW_WIDTH);
         primaryStage.setMinHeight(MAIN_WINDOW_HEIGHT);
+        primaryStage.setHeight(MAIN_WINDOW_HEIGHT);
+        primaryStage.setWidth(MAIN_WINDOW_HEIGHT);
         primaryStage.show();
 
         mainPane = new StackPane();
@@ -117,7 +119,6 @@ public class AppView {
 
     private void initMapView() {
         mainMapView = new MapView();
-        mainMapView.setPrefSize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT);
         mainPane.getChildren().add(mainMapView);
         mainMap = new ArcGISMap(Basemap.createImagery());
         StackPane.setAlignment(mainMapView, Pos.TOP_LEFT);
