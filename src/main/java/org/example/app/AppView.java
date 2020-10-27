@@ -114,7 +114,7 @@ public class AppView {
         loadGeoDatabaseBtn.setText("load geodatabse");
         loadGeoDatabaseBtn.setOnMouseClicked(mouseEvent -> controller.loadGeoDatabase(primaryStage, mainMapView));
         StackPane.setAlignment(loadGeoDatabaseBtn, Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(loadGeoDatabaseBtn, new Insets(15,150,15,15));
+        StackPane.setMargin(loadGeoDatabaseBtn, new Insets(15, 130, 15, 15));
         mainPane.getChildren().add(loadGeoDatabaseBtn);
     }
 
