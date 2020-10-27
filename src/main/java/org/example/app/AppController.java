@@ -7,6 +7,7 @@ import com.esri.arcgisruntime.geometry.SpatialReference;
 import com.esri.arcgisruntime.internal.util.StringUtil;
 import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.layers.WmsLayer;
+import com.esri.arcgisruntime.loadable.LoadStatus;
 import com.esri.arcgisruntime.mapping.view.Callout;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
@@ -14,6 +15,7 @@ import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import com.esri.arcgisruntime.symbology.SimpleRenderer;
 import javafx.geometry.Point2D;
+import javafx.scene.control.Alert;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -55,25 +58,37 @@ public class AppController {
         }
     }
 
-    public void loadOnlineData(@NotNull MapView parentMapView, @NotNull String url, int type) {
+    public void loadOnlineData(@NotNull MapView parentMapView, @NotNull String url, AppView.OnlineDataType type) {
         if (StringUtil.isNullOrEmpty(url)) {
             return;
         }
 
-        if (type == 1) {
-            List<String> names = new ArrayList<>();
-            names.add("WMS Layer");
-            WmsLayer wmsLayer = new WmsLayer(url, names);
-            wmsLayer.addDoneLoadingListener(() -> parentMapView.setViewpointGeometryAsync(wmsLayer.getFullExtent()));
-            parentMapView.getMap().getOperationalLayers().add(wmsLayer);
-        } else {
-            ServiceFeatureTable featureTable = new ServiceFeatureTable(url);
-            FeatureLayer featureLayer = new FeatureLayer(featureTable);
-            parentMapView.getMap().getOperationalLayers().add(featureLayer);
-            featureLayer.addDoneLoadingListener(() -> {
-                featureLayer.setRenderer(getOnlineDataRenderer(featureLayer.getFeatureTable().getGeometryType()));
-                parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent());
-            });
+        switch (type) {
+            case WMS_SERVICE: {
+                List<String> names = Collections.singletonList("1");
+                WmsLayer wmsLayer = new WmsLayer(url, names);
+                wmsLayer.addDoneLoadingListener(() -> {
+                    if (wmsLayer.getLoadStatus() == LoadStatus.LOADED) {
+                        parentMapView.setViewpointGeometryAsync(wmsLayer.getFullExtent());
+                    } else if (wmsLayer.getLoadStatus() == LoadStatus.FAILED_TO_LOAD) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR, "Failed to load WMS layer");
+                        alert.setContentText(wmsLayer.getLoadError().getMessage());
+                        alert.showAndWait();
+                    }
+                });
+                parentMapView.getMap().getOperationalLayers().add(wmsLayer);
+                break;
+            }
+            case ESRI_SERVICE: {
+                ServiceFeatureTable featureTable = new ServiceFeatureTable(url);
+                FeatureLayer featureLayer = new FeatureLayer(featureTable);
+                parentMapView.getMap().getOperationalLayers().add(featureLayer);
+                featureLayer.addDoneLoadingListener(() -> {
+                    featureLayer.setRenderer(getOnlineDataRenderer(featureLayer.getFeatureTable().getGeometryType()));
+                    parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent());
+                });
+                break;
+            }
         }
     }
 

@@ -35,6 +35,11 @@ public class AppView {
     private final int MAIN_WINDOW_HEIGHT = 700;
     private final int MAIN_WINDOW_WIDTH = 1200;
 
+    public enum OnlineDataType {
+        ESRI_SERVICE,
+        WMS_SERVICE
+    }
+
     Stage primaryStage;
     MenuBar menuBar;
     Menu fileMenu;
@@ -45,6 +50,7 @@ public class AppView {
     Button loadShapefileBtn;
     Button loadGeoDatabaseBtn;
     Button loadOnlineDataBtn;
+    ChoiceBox<OnlineDataType> onlineDataTypeChoiceBox;
     TextField onlineDataURLText;
     ChoiceBox<Basemap.Type> basemapChoiceBox;
     Button callOutBtn;
@@ -96,7 +102,7 @@ public class AppView {
         zoomFullExtent.setOnAction(actionEvent -> mainMapView.setViewpointScaleAsync(1E20));
         clockwiseRotate.setOnAction(actionEvent -> mainMapView.setViewpointRotationAsync(mainMapView.getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getRotation() + Math.PI / 2));
         counterclockwiseRotate.setOnAction(actionEvent -> mainMapView.setViewpointRotationAsync(mainMapView.getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getRotation() - Math.PI / 2));
-        operationMenu.getItems().addAll(zoomIn, zoomOut, zoomFullExtent, clockwiseRotate,counterclockwiseRotate);
+        operationMenu.getItems().addAll(zoomIn, zoomOut, zoomFullExtent, clockwiseRotate, counterclockwiseRotate);
 
         menuBar.getMenus().addAll(fileMenu, operationMenu);
         StackPane.setAlignment(menuBar, Pos.TOP_LEFT);
@@ -266,13 +272,31 @@ public class AppView {
         StackPane.setAlignment(onlineDataURLText, Pos.BOTTOM_LEFT);
         StackPane.setMargin(onlineDataURLText, new Insets(15, 15, 15, 150));
 
+        onlineDataTypeChoiceBox = new ChoiceBox<>();
+        onlineDataTypeChoiceBox.setMinWidth(100);
+        onlineDataTypeChoiceBox.getItems().addAll(OnlineDataType.values());
+        onlineDataTypeChoiceBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(OnlineDataType onlineDataType) {
+                return onlineDataType.name();
+            }
+
+            @Override
+            public OnlineDataType fromString(String s) {
+                return OnlineDataType.valueOf(s);
+            }
+        });
+        onlineDataTypeChoiceBox.getSelectionModel().select(OnlineDataType.ESRI_SERVICE);
+        StackPane.setAlignment(onlineDataTypeChoiceBox, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(onlineDataTypeChoiceBox, new Insets(15, 15, 15, 560));
+
         loadOnlineDataBtn = new Button();
         loadOnlineDataBtn.setText("load online data");
-        loadOnlineDataBtn.setOnMouseClicked(mouseEvent -> controller.loadOnlineData(mainMapView, onlineDataURLText.getText(), 0));
+        loadOnlineDataBtn.setOnMouseClicked(mouseEvent -> controller.loadOnlineData(mainMapView, onlineDataURLText.getText(), onlineDataTypeChoiceBox.getSelectionModel().getSelectedItem()));
         StackPane.setAlignment(loadOnlineDataBtn, Pos.BOTTOM_LEFT);
         StackPane.setMargin(loadOnlineDataBtn, new Insets(15));
 
-        mainPane.getChildren().addAll(loadOnlineDataBtn, onlineDataURLText);
+        mainPane.getChildren().addAll(loadOnlineDataBtn, onlineDataURLText, onlineDataTypeChoiceBox);
     }
 
     private void initCallOutButton() {
@@ -291,10 +315,10 @@ public class AppView {
         mainPane.getChildren().addAll(callOutBtn, longitudeText, latitudeText);
     }
 
-    private void initClickToShowCallOut () {
+    private void initClickToShowCallOut() {
         mainMapView.setOnMouseClicked(mouseEvent -> {
             Point point = mainMapView.screenToLocation(new Point2D(mouseEvent.getX(), mouseEvent.getY()));
-            point = (Point)GeometryEngine.project(point, SpatialReference.create(4326));
+            point = (Point) GeometryEngine.project(point, SpatialReference.create(4326));
             controller.showCallOut(mainMapView, point);
         });
     }
