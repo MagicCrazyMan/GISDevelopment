@@ -75,12 +75,16 @@ public class AppView {
         MenuItem zoomIn = new MenuItem("Zoom In");
         MenuItem zoomOut = new MenuItem("Zoom Out");
         MenuItem zoomFullExtent = new MenuItem("Full Extent");
+        MenuItem clockwiseRotate = new MenuItem("Clockwise Rotate");
+        MenuItem counterclockwiseRotate = new MenuItem("Counterclockwise Rotate");
         zoomIn.setOnAction(actionEvent -> mainMapView.setViewpointScaleAsync(mainMapView.getMapScale() / 4));
         zoomOut.setOnAction(actionEvent -> mainMapView.setViewpointScaleAsync(mainMapView.getMapScale() * 4));
         // this is a tricky way to achieve zooming to full extent, all we have to do is that, set scale to a large enough value (but not too large)
         // MapView will automatically limit scale to the max scale value
         zoomFullExtent.setOnAction(actionEvent -> mainMapView.setViewpointScaleAsync(1E20));
-        operationMenu.getItems().addAll(zoomIn, zoomOut, zoomFullExtent);
+        clockwiseRotate.setOnAction(actionEvent -> mainMapView.setViewpointRotationAsync(mainMapView.getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getRotation() + Math.PI / 2));
+        counterclockwiseRotate.setOnAction(actionEvent -> mainMapView.setViewpointRotationAsync(mainMapView.getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getRotation() - Math.PI / 2));
+        operationMenu.getItems().addAll(zoomIn, zoomOut, zoomFullExtent, clockwiseRotate,counterclockwiseRotate);
 
         menuBar.getMenus().addAll(fileMenu, operationMenu);
         StackPane.setAlignment(menuBar, Pos.TOP_LEFT);
