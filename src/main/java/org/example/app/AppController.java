@@ -18,11 +18,7 @@ import java.util.Objects;
 public class AppController {
 
     public void loadShapefile(@Nullable Window parentWindow, @NotNull MapView parentMapView) {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Shapefile format filed (.shp)", "*.shp"));
-        fileChooser.setTitle("Select shapefile");
-        File file = fileChooser.showOpenDialog(parentWindow);
+        File file = selectSingleFile(parentWindow, "Select shapefile", new FileChooser.ExtensionFilter("Shapefile format filed (.shp)", "*.shp"));
         if (Objects.nonNull(file)) {
             ShapefileFeatureTable shapefileFeatureTable = new ShapefileFeatureTable(file.getAbsolutePath());
             FeatureLayer featureLayer = new FeatureLayer(shapefileFeatureTable);
@@ -35,11 +31,7 @@ public class AppController {
     }
 
     public void loadGeoDatabase(@Nullable Window parentWindow, @NotNull MapView parentMapView) {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("eSRI GeoDatabase (.geodatabase)", "*.geodatabase"));
-        fileChooser.setTitle("Select GeoDatabase");
-        File file = fileChooser.showOpenDialog(parentWindow);
+        File file = selectSingleFile(parentWindow, "Select GeoDatabase", new FileChooser.ExtensionFilter("eSRI GeoDatabase (.geodatabase)", "*.geodatabase"));
         if (Objects.nonNull(file)) {
             Geodatabase geodatabase = new Geodatabase(file.getAbsolutePath());
             geodatabase.loadAsync();
@@ -52,6 +44,14 @@ public class AppController {
                 }
             });
         }
+    }
+
+    private File selectSingleFile(@Nullable Window parentWindow,@NotNull String title, @Nullable FileChooser.ExtensionFilter... extensionFilter) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        fileChooser.getExtensionFilters().addAll(extensionFilter);
+        fileChooser.setTitle(title);
+        return fileChooser.showOpenDialog(parentWindow);
     }
 }
 
