@@ -1,5 +1,8 @@
 package org.example.app;
 
+import com.esri.arcgisruntime.geometry.GeometryEngine;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.SpatialReference;
 import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
@@ -10,6 +13,7 @@ import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -40,6 +44,9 @@ public class AppView {
     Button loadOnlineDataBtn;
     TextField onlineDataURLText;
     MenuButton basemapMenuBtn;
+    Button callOutBtn;
+    TextField longitudeText;
+    TextField latitudeText;
 
     MapView mainMapView;
     MapView eagleMapView;
@@ -60,6 +67,8 @@ public class AppView {
         initGeoDatabaseButton();
         initOnlineDataButton();
         initBasemapSelector();
+        initCallOutButton();
+        initClickToShowCallOut();
     }
 
     private void initMenuBar() {
@@ -247,6 +256,34 @@ public class AppView {
         StackPane.setMargin(loadOnlineDataBtn, new Insets(15));
 
         mainPane.getChildren().addAll(loadOnlineDataBtn, onlineDataURLText);
+    }
+
+    private void initCallOutButton() {
+        callOutBtn = new Button("Show Call Out At Position");
+        longitudeText = new TextField();
+        latitudeText = new TextField();
+        longitudeText.setMaxWidth(100);
+        latitudeText.setMaxWidth(100);
+        callOutBtn.setOnMouseClicked(mouseEvent -> controller.showCallOut(mainMapView, longitudeText.getText(), latitudeText.getText()));
+        StackPane.setAlignment(callOutBtn, Pos.BOTTOM_LEFT);
+        StackPane.setAlignment(longitudeText, Pos.BOTTOM_LEFT);
+        StackPane.setAlignment(latitudeText, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(callOutBtn, new Insets(15, 15, 50, 15));
+        StackPane.setMargin(longitudeText, new Insets(15, 15, 50, 210));
+        StackPane.setMargin(latitudeText, new Insets(15, 15, 50, 315));
+        mainPane.getChildren().addAll(callOutBtn, longitudeText, latitudeText);
+    }
+
+    private void initClickToShowCallOut () {
+        mainMapView.setOnMouseClicked(mouseEvent -> {
+            Point point = mainMapView.screenToLocation(new Point2D(mouseEvent.getX(), mouseEvent.getY()));
+            point = (Point)GeometryEngine.project(point, SpatialReference.create(4326));
+            controller.showCallOut(mainMapView, point);
+        });
+    }
+
+    private void initLoadWMTSMap() {
+
     }
 
     public void dispose() {

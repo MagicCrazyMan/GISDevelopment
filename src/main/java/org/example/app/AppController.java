@@ -2,13 +2,17 @@ package org.example.app;
 
 import com.esri.arcgisruntime.data.*;
 import com.esri.arcgisruntime.geometry.GeometryType;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.SpatialReference;
 import com.esri.arcgisruntime.internal.util.StringUtil;
 import com.esri.arcgisruntime.layers.FeatureLayer;
+import com.esri.arcgisruntime.mapping.view.Callout;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import com.esri.arcgisruntime.symbology.SimpleRenderer;
+import javafx.geometry.Point2D;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import org.jetbrains.annotations.NotNull;
@@ -82,6 +86,29 @@ public class AppController {
             default:
                 return null;
         }
+    }
+
+    SimpleMarkerSymbol callOutMarker = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, 0xFFFFFF00, 10);
+
+    public void showCallOut(@NotNull MapView parentMapView,  double longitude,  double latitude) {
+        Callout callout = parentMapView.getCallout();
+        callout.setTitle(String.format("Longitude: %05f, Latitude: %.5f", longitude, latitude));
+        callout.setDetail("");
+        callout.showCalloutAt(Point.createWithM(longitude, latitude, 0, SpatialReference.create(4326)));
+    }
+
+    public void showCallOut(@NotNull MapView parentMapView, @NotNull String longitude, @NotNull String latitude){
+        if (StringUtil.isNullOrEmpty(longitude) || StringUtil.isNullOrEmpty(latitude)) {
+            return;
+        }
+
+        double lon = Double.parseDouble(longitude);
+        double lat = Double.parseDouble(latitude);
+        this.showCallOut(parentMapView, lon, lat);
+    }
+
+    public void showCallOut(@NotNull MapView parentMapView, @NotNull Point point) {
+        this.showCallOut(parentMapView, point.getX(), point.getY());
     }
 
     private File selectSingleFile(@Nullable Window parentWindow, @NotNull String title, @Nullable FileChooser.ExtensionFilter... extensionFilter) {
