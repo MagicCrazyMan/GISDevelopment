@@ -63,8 +63,8 @@ public class AppView {
 
     private void initMainWindow() {
         primaryStage.setTitle("Map Window");
-        primaryStage.setWidth(MAIN_WINDOW_WIDTH);
-        primaryStage.setHeight(MAIN_WINDOW_HEIGHT);
+        primaryStage.setMinWidth(MAIN_WINDOW_WIDTH);
+        primaryStage.setMinHeight(MAIN_WINDOW_HEIGHT);
         primaryStage.show();
 
         mainPane = new StackPane();
