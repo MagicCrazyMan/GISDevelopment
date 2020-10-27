@@ -10,6 +10,8 @@ import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.*;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -24,6 +26,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 
 import java.util.Objects;
 
@@ -43,7 +46,7 @@ public class AppView {
     Button loadGeoDatabaseBtn;
     Button loadOnlineDataBtn;
     TextField onlineDataURLText;
-    MenuButton basemapMenuBtn;
+    ChoiceBox<Basemap.Type> basemapMenuBtn;
     Button callOutBtn;
     TextField longitudeText;
     TextField latitudeText;
@@ -152,13 +155,27 @@ public class AppView {
     }
 
     private void initBasemapSelector() {
-        basemapMenuBtn = new MenuButton(Basemap.Type.IMAGERY.name());
+        basemapMenuBtn = new ChoiceBox<>();
         basemapMenuBtn.setMinWidth(300);
-        for (Basemap.Type type : Basemap.Type.values()) {
-            MenuItem menuItem = new MenuItem(type.name());
-            menuItem.setOnAction(actionEvent -> changeBasemapByType(type));
-            basemapMenuBtn.getItems().add(menuItem);
-        }
+        basemapMenuBtn.getItems().addAll(Basemap.Type.values());
+        basemapMenuBtn.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(Basemap.Type type) {
+                return type.name();
+            }
+
+            @Override
+            public Basemap.Type fromString(String s) {
+                return Basemap.Type.valueOf(s);
+            }
+        });
+        basemapMenuBtn.getSelectionModel().selectedItemProperty().addListener((observableValue, type, t1) -> {
+            if (Objects.nonNull(mainMapView)) {
+                changeBasemapByType(t1);
+            }
+        });
+        basemapMenuBtn.setValue(Basemap.Type.IMAGERY);
+
         StackPane.setAlignment(basemapMenuBtn, Pos.TOP_RIGHT);
         StackPane.setMargin(basemapMenuBtn, new Insets(250, 15, 15, 15));
         mainPane.getChildren().add(basemapMenuBtn);
@@ -221,7 +238,6 @@ public class AppView {
                 mainMapView.getMap().setBasemap(Basemap.createTerrainWithLabelsVector());
                 break;
         }
-        basemapMenuBtn.setText(type.name());
     }
 
     private void initShapefileButton() {
