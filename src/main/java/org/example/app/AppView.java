@@ -7,10 +7,14 @@ import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.*;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
@@ -35,6 +39,7 @@ public class AppView {
     Button loadGeoDatabaseBtn;
     Button loadOnlineDataBtn;
     TextField onlineDataURLText;
+    MenuButton basemapMenuBtn;
 
     MapView mainMapView;
     MapView eagleMapView;
@@ -53,6 +58,7 @@ public class AppView {
         initShapefileButton();
         initGeoDatabaseButton();
         initOnlineDataButton();
+        initBasemapSelector();
     }
 
     private void initMainWindow() {
@@ -101,6 +107,79 @@ public class AppView {
             extentGraphicOverlay.getGraphics().clear();
             extentGraphicOverlay.getGraphics().add(new Graphic(mainMapView.getVisibleArea().getExtent(), extentPolygonSymbol));
         });
+    }
+
+    private void initBasemapSelector() {
+        basemapMenuBtn = new MenuButton(Basemap.Type.IMAGERY.name());
+        basemapMenuBtn.setMinWidth(300);
+        for (Basemap.Type type : Basemap.Type.values()) {
+            MenuItem menuItem = new MenuItem(type.name());
+            menuItem.setOnAction(actionEvent -> changeBasemapByType(type));
+            basemapMenuBtn.getItems().add(menuItem);
+        }
+        StackPane.setAlignment(basemapMenuBtn, Pos.TOP_RIGHT);
+        StackPane.setMargin(basemapMenuBtn, new Insets(250, 15, 15, 15));
+        mainPane.getChildren().add(basemapMenuBtn);
+    }
+
+    private void changeBasemapByType(Basemap.Type type) {
+        switch (type) {
+            case OCEANS:
+                mainMapView.getMap().setBasemap(Basemap.createOceans());
+                break;
+            case IMAGERY:
+                mainMapView.getMap().setBasemap(Basemap.createImagery());
+                break;
+            case STREETS:
+                mainMapView.getMap().setBasemap(Basemap.createStreets());
+                break;
+            case TOPOGRAPHIC:
+                mainMapView.getMap().setBasemap(Basemap.createTopographic());
+                break;
+            case STREETS_VECTOR:
+                mainMapView.getMap().setBasemap(Basemap.createStreetsVector());
+                break;
+            case OPEN_STREET_MAP:
+                mainMapView.getMap().setBasemap(Basemap.createOpenStreetMap());
+                break;
+            case LIGHT_GRAY_CANVAS:
+                mainMapView.getMap().setBasemap(Basemap.createLightGrayCanvas());
+                break;
+            case NAVIGATION_VECTOR:
+                mainMapView.getMap().setBasemap(Basemap.createNavigationVector());
+                break;
+            case TOPOGRAPHIC_VECTOR:
+                mainMapView.getMap().setBasemap(Basemap.createTopographicVector());
+                break;
+            case IMAGERY_WITH_LABELS:
+                mainMapView.getMap().setBasemap(Basemap.createImageryWithLabels());
+                break;
+            case NATIONAL_GEOGRAPHIC:
+                mainMapView.getMap().setBasemap(Basemap.createNationalGeographic());
+                break;
+            case TERRAIN_WITH_LABELS:
+                mainMapView.getMap().setBasemap(Basemap.createTerrainWithLabels());
+                break;
+            case STREETS_NIGHT_VECTOR:
+                mainMapView.getMap().setBasemap(Basemap.createStreetsNightVector());
+                break;
+            case DARK_GRAY_CANVAS_VECTOR:
+                mainMapView.getMap().setBasemap(Basemap.createDarkGrayCanvasVector());
+                break;
+            case LIGHT_GRAY_CANVAS_VECTOR:
+                mainMapView.getMap().setBasemap(Basemap.createLightGrayCanvasVector());
+                break;
+            case IMAGERY_WITH_LABELS_VECTOR:
+                mainMapView.getMap().setBasemap(Basemap.createImageryWithLabelsVector());
+                break;
+            case STREETS_WITH_RELIEF_VECTOR:
+                mainMapView.getMap().setBasemap(Basemap.createStreetsWithReliefVector());
+                break;
+            case TERRAIN_WITH_LABELS_VECTOR:
+                mainMapView.getMap().setBasemap(Basemap.createTerrainWithLabelsVector());
+                break;
+        }
+        basemapMenuBtn.setText(type.name());
     }
 
     private void initShapefileButton() {
