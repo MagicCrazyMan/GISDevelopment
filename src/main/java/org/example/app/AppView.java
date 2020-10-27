@@ -12,6 +12,7 @@ import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.css.Size;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -19,13 +20,12 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.StringConverter;
 
 import java.util.Objects;
@@ -44,7 +44,8 @@ public class AppView {
     MenuBar menuBar;
     Menu fileMenu;
     Menu operationMenu;
-    StackPane mainPane;
+    GridPane mainPane;
+    StackPane contentPane;
     ArcGISMap mainMap;
     ArcGISMap eagleMap;
     Button loadShapefileBtn;
@@ -78,6 +79,31 @@ public class AppView {
         initBasemapSelector();
         initCallOutButton();
         initClickToShowCallOut();
+        primaryStage.show();
+    }
+
+    private void initMainWindow() {
+        primaryStage.setTitle("Map Window");
+        primaryStage.setOnShown(windowEvent -> {
+            primaryStage.setMinHeight(primaryStage.getHeight());
+            primaryStage.setMinWidth(primaryStage.getWidth());
+        });
+
+        mainPane = new GridPane();
+        mainPane.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        mainPane.setPrefSize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT);
+        RowConstraints rowConstraintsHeader = new RowConstraints(Control.USE_COMPUTED_SIZE, Control.USE_COMPUTED_SIZE, Control.USE_COMPUTED_SIZE);
+        rowConstraintsHeader.setFillHeight(false);
+        RowConstraints rowConstraintsContent = new RowConstraints(0, Control.USE_COMPUTED_SIZE, Double.MAX_VALUE);
+        rowConstraintsContent.setFillHeight(true);
+        rowConstraintsContent.setVgrow(Priority.SOMETIMES);
+        ColumnConstraints columnConstraints = new ColumnConstraints(0, Control.USE_COMPUTED_SIZE, Double.MAX_VALUE);
+        columnConstraints.setFillWidth(true);
+        columnConstraints.setHgrow(Priority.SOMETIMES);
+        mainPane.getRowConstraints().addAll(rowConstraintsHeader, rowConstraintsContent);
+        mainPane.getColumnConstraints().add(columnConstraints);
+
+        primaryStage.setScene(new Scene(mainPane));
     }
 
     private void initMenuBar() {
@@ -107,29 +133,22 @@ public class AppView {
         menuBar.getMenus().addAll(fileMenu, operationMenu);
         StackPane.setAlignment(menuBar, Pos.TOP_LEFT);
         StackPane.setMargin(menuBar, new Insets(0, 0, 20, 0));
-        mainPane.getChildren().add(menuBar);
-    }
-
-    private void initMainWindow() {
-        primaryStage.setTitle("Map Window");
-        primaryStage.setMinWidth(MAIN_WINDOW_WIDTH);
-        primaryStage.setMinHeight(MAIN_WINDOW_HEIGHT);
-        primaryStage.setHeight(MAIN_WINDOW_HEIGHT);
-        primaryStage.setWidth(MAIN_WINDOW_HEIGHT);
-        primaryStage.show();
-
-        mainPane = new StackPane();
-        Scene scene = new Scene(mainPane);
-        primaryStage.setScene(scene);
+        mainPane.add(menuBar, 0, 0);
     }
 
     private void initMapView() {
+        contentPane = new StackPane();
+        contentPane.setMinSize(0, 0);
+        contentPane.setPrefSize(StackPane.USE_COMPUTED_SIZE, StackPane.USE_COMPUTED_SIZE);
+        contentPane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        mainPane.add(contentPane, 0, 1);
+
         mainMapView = new MapView();
-        mainPane.getChildren().add(mainMapView);
         mainMap = new ArcGISMap(Basemap.createImagery());
         StackPane.setAlignment(mainMapView, Pos.TOP_LEFT);
-        StackPane.setMargin(mainMapView, new Insets(30, 0, 0, 0));
         mainMapView.setMap(mainMap);
+
+        contentPane.getChildren().add(mainMapView);
     }
 
     private void initEagleMap() {
@@ -144,7 +163,7 @@ public class AppView {
         eagleMapView.setMap(eagleMap);
         StackPane.setMargin(eagleMapView, new Insets(30, 15, 15, 15));
         StackPane.setAlignment(eagleMapView, Pos.TOP_RIGHT);
-        mainPane.getChildren().add(eagleMapView);
+        contentPane.getChildren().add(eagleMapView);
 
         GraphicsOverlay extentGraphicOverlay = new GraphicsOverlay();
         eagleMapView.getGraphicsOverlays().add(extentGraphicOverlay);
@@ -185,7 +204,7 @@ public class AppView {
 
         StackPane.setAlignment(basemapChoiceBox, Pos.TOP_RIGHT);
         StackPane.setMargin(basemapChoiceBox, new Insets(250, 15, 15, 15));
-        mainPane.getChildren().add(basemapChoiceBox);
+        contentPane.getChildren().add(basemapChoiceBox);
     }
 
     private void changeBasemapByType(Basemap.Type type) {
@@ -254,7 +273,8 @@ public class AppView {
         loadShapefileBtn.setOnMouseClicked(mouseEvent -> controller.loadShapefile(primaryStage, mainMapView));
         StackPane.setAlignment(loadShapefileBtn, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(loadShapefileBtn, new Insets(15));
-        mainPane.getChildren().add(loadShapefileBtn);
+//        mainPane.getChildren().add(loadShapefileBtn);
+        contentPane.getChildren().add(loadShapefileBtn);
     }
 
     private void initGeoDatabaseButton() {
@@ -263,7 +283,7 @@ public class AppView {
         loadGeoDatabaseBtn.setOnMouseClicked(mouseEvent -> controller.loadGeoDatabase(primaryStage, mainMapView));
         StackPane.setAlignment(loadGeoDatabaseBtn, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(loadGeoDatabaseBtn, new Insets(15, 130, 15, 15));
-        mainPane.getChildren().add(loadGeoDatabaseBtn);
+        contentPane.getChildren().add(loadGeoDatabaseBtn);
     }
 
     private void initOnlineDataButton() {
@@ -296,7 +316,7 @@ public class AppView {
         StackPane.setAlignment(loadOnlineDataBtn, Pos.BOTTOM_LEFT);
         StackPane.setMargin(loadOnlineDataBtn, new Insets(15));
 
-        mainPane.getChildren().addAll(loadOnlineDataBtn, onlineDataURLText, onlineDataTypeChoiceBox);
+        contentPane.getChildren().addAll(loadOnlineDataBtn, onlineDataURLText, onlineDataTypeChoiceBox);
     }
 
     private void initCallOutButton() {
@@ -312,7 +332,7 @@ public class AppView {
         StackPane.setMargin(callOutBtn, new Insets(15, 15, 50, 15));
         StackPane.setMargin(longitudeText, new Insets(15, 15, 50, 210));
         StackPane.setMargin(latitudeText, new Insets(15, 15, 50, 315));
-        mainPane.getChildren().addAll(callOutBtn, longitudeText, latitudeText);
+        contentPane.getChildren().addAll(callOutBtn, longitudeText, latitudeText);
     }
 
     private void initClickToShowCallOut() {
