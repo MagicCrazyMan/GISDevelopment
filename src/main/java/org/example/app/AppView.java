@@ -81,7 +81,7 @@ public class AppView {
         eagleMapView.setEnableTouchZoom(false);
         eagleMapView.setMap(eagleMap);
         StackPane.setMargin(eagleMapView, new Insets(15));
-        StackPane.setAlignment(eagleMapView, Pos.BOTTOM_LEFT);
+        StackPane.setAlignment(eagleMapView, Pos.TOP_RIGHT);
         mainPane.getChildren().add(eagleMapView);
 
         GraphicsOverlay extentGraphicOverlay = new GraphicsOverlay();
