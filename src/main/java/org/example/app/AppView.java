@@ -11,6 +11,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.StackPane;
@@ -32,6 +33,8 @@ public class AppView {
     ArcGISMap eagleMap;
     Button loadShapefileBtn;
     Button loadGeoDatabaseBtn;
+    Button loadOnlineDataBtn;
+    TextField onlineDataURLText;
 
     MapView mainMapView;
     MapView eagleMapView;
@@ -49,6 +52,7 @@ public class AppView {
         initEagleMap();
         initShapefileButton();
         initGeoDatabaseButton();
+        initOnlineDataButton();
     }
 
     private void initMainWindow() {
@@ -87,7 +91,7 @@ public class AppView {
         GraphicsOverlay extentGraphicOverlay = new GraphicsOverlay();
         eagleMapView.getGraphicsOverlays().add(extentGraphicOverlay);
         SimpleLineSymbol extentPolygonOutline = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, 0xFFFF0000, 2);
-        SimpleFillSymbol extentPolygonSymbol = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID, 0x99FF0000, extentPolygonOutline);
+        SimpleFillSymbol extentPolygonSymbol = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID, 0x44FF0000, extentPolygonOutline);
         // add viewpoint changed listener to mainMapView, and sync the viewpoint to eagleMapView
         mainMapView.addViewpointChangedListener(viewpointChangedEvent -> {
             // setViewpointAsync may act in a higher performance, but it will also cause delay (because eagleMapView update viewpoint async from mainMapView, not sync)
@@ -116,6 +120,21 @@ public class AppView {
         StackPane.setAlignment(loadGeoDatabaseBtn, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(loadGeoDatabaseBtn, new Insets(15, 130, 15, 15));
         mainPane.getChildren().add(loadGeoDatabaseBtn);
+    }
+
+    private void initOnlineDataButton() {
+        onlineDataURLText = new TextField();
+        onlineDataURLText.setMaxWidth(400);
+        StackPane.setAlignment(onlineDataURLText, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(onlineDataURLText, new Insets(15, 15, 15, 150));
+
+        loadOnlineDataBtn = new Button();
+        loadOnlineDataBtn.setText("load online data");
+        loadOnlineDataBtn.setOnMouseClicked(mouseEvent -> controller.loadOnlineData(mainMapView, onlineDataURLText.getText()));
+        StackPane.setAlignment(loadOnlineDataBtn, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(loadOnlineDataBtn, new Insets(15));
+
+        mainPane.getChildren().addAll(loadOnlineDataBtn, onlineDataURLText);
     }
 
     public void dispose() {

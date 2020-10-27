@@ -1,11 +1,14 @@
 package org.example.app;
 
-import com.esri.arcgisruntime.data.GeoPackageFeatureTable;
-import com.esri.arcgisruntime.data.Geodatabase;
-import com.esri.arcgisruntime.data.GeodatabaseFeatureTable;
-import com.esri.arcgisruntime.data.ShapefileFeatureTable;
+import com.esri.arcgisruntime.data.*;
+import com.esri.arcgisruntime.geometry.GeometryType;
+import com.esri.arcgisruntime.internal.util.StringUtil;
 import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
+import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
+import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
+import com.esri.arcgisruntime.symbology.SimpleRenderer;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +49,42 @@ public class AppController {
         }
     }
 
-    private File selectSingleFile(@Nullable Window parentWindow,@NotNull String title, @Nullable FileChooser.ExtensionFilter... extensionFilter) {
+    public void loadOnlineData(@NotNull MapView parentMapView, @NotNull String url) {
+        if (StringUtil.isNullOrEmpty(url)) {
+            return;
+        }
+        ServiceFeatureTable serviceFeatureTable = new ServiceFeatureTable(url);
+        FeatureLayer featureLayer = new FeatureLayer(serviceFeatureTable);
+        parentMapView.getMap().getOperationalLayers().add(featureLayer);
+        featureLayer.addDoneLoadingListener(() -> {
+            featureLayer.setRenderer(getOnlineDataRenderer(featureLayer.getFeatureTable().getGeometryType()));
+            parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent());
+        });
+    }
+
+    private SimpleRenderer getOnlineDataRenderer(GeometryType geometryType) {
+        switch (geometryType) {
+            case POINT:
+            case MULTIPOINT: {
+                SimpleMarkerSymbol simpleMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, 0x990000FF, 4);
+                return new SimpleRenderer(simpleMarkerSymbol);
+            }
+            case POLYGON:
+            case ENVELOPE: {
+                SimpleLineSymbol simpleLineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, 0xFF00FF00, 2);
+                SimpleFillSymbol simpleFillSymbol = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID, 0x99FF0000, simpleLineSymbol);
+                return new SimpleRenderer(simpleFillSymbol);
+            }
+            case POLYLINE: {
+                SimpleLineSymbol simpleLineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, 0xFF00FF00, 2);
+                return new SimpleRenderer(simpleLineSymbol);
+            }
+            default:
+                return null;
+        }
+    }
+
+    private File selectSingleFile(@Nullable Window parentWindow, @NotNull String title, @Nullable FileChooser.ExtensionFilter... extensionFilter) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
         fileChooser.getExtensionFilters().addAll(extensionFilter);
