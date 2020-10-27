@@ -46,7 +46,7 @@ public class AppView {
     Button loadGeoDatabaseBtn;
     Button loadOnlineDataBtn;
     TextField onlineDataURLText;
-    ChoiceBox<Basemap.Type> basemapMenuBtn;
+    ChoiceBox<Basemap.Type> basemapChoiceBox;
     Button callOutBtn;
     TextField longitudeText;
     TextField latitudeText;
@@ -155,10 +155,10 @@ public class AppView {
     }
 
     private void initBasemapSelector() {
-        basemapMenuBtn = new ChoiceBox<>();
-        basemapMenuBtn.setMinWidth(300);
-        basemapMenuBtn.getItems().addAll(Basemap.Type.values());
-        basemapMenuBtn.setConverter(new StringConverter<>() {
+        basemapChoiceBox = new ChoiceBox<>();
+        basemapChoiceBox.setMinWidth(300);
+        basemapChoiceBox.getItems().addAll(Basemap.Type.values());
+        basemapChoiceBox.setConverter(new StringConverter<>() {
             @Override
             public String toString(Basemap.Type type) {
                 return type.name();
@@ -169,16 +169,16 @@ public class AppView {
                 return Basemap.Type.valueOf(s);
             }
         });
-        basemapMenuBtn.getSelectionModel().selectedItemProperty().addListener((observableValue, type, t1) -> {
+        basemapChoiceBox.getSelectionModel().selectedItemProperty().addListener((observableValue, type, t1) -> {
             if (Objects.nonNull(mainMapView)) {
                 changeBasemapByType(t1);
             }
         });
-        basemapMenuBtn.setValue(Basemap.Type.IMAGERY);
+        basemapChoiceBox.setValue(Basemap.Type.IMAGERY);
 
-        StackPane.setAlignment(basemapMenuBtn, Pos.TOP_RIGHT);
-        StackPane.setMargin(basemapMenuBtn, new Insets(250, 15, 15, 15));
-        mainPane.getChildren().add(basemapMenuBtn);
+        StackPane.setAlignment(basemapChoiceBox, Pos.TOP_RIGHT);
+        StackPane.setMargin(basemapChoiceBox, new Insets(250, 15, 15, 15));
+        mainPane.getChildren().add(basemapChoiceBox);
     }
 
     private void changeBasemapByType(Basemap.Type type) {
@@ -296,10 +296,6 @@ public class AppView {
             point = (Point)GeometryEngine.project(point, SpatialReference.create(4326));
             controller.showCallOut(mainMapView, point);
         });
-    }
-
-    private void initLoadWMTSMap() {
-
     }
 
     public void dispose() {
