@@ -12,10 +12,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.StackPane;
@@ -32,6 +29,9 @@ public class AppView {
     private final int MAIN_WINDOW_WIDTH = 1200;
 
     Stage primaryStage;
+    MenuBar menuBar;
+    Menu fileMenu;
+    Menu operationMenu;
     StackPane mainPane;
     ArcGISMap mainMap;
     ArcGISMap eagleMap;
@@ -53,12 +53,39 @@ public class AppView {
     private void drawMainWindow(Stage stage) {
         primaryStage = stage;
         initMainWindow();
+        initMenuBar();
         initMapView();
         initEagleMap();
         initShapefileButton();
         initGeoDatabaseButton();
         initOnlineDataButton();
         initBasemapSelector();
+    }
+
+    private void initMenuBar() {
+        menuBar = new MenuBar();
+        menuBar.setViewOrder(-1);
+
+        fileMenu = new Menu("Files");
+        MenuItem exitMenuItem = new MenuItem("Exit");
+        exitMenuItem.setOnAction(actionEvent -> System.exit(0));
+        fileMenu.getItems().addAll(exitMenuItem);
+
+        operationMenu = new Menu("Operations");
+        MenuItem zoomIn = new MenuItem("Zoom In");
+        MenuItem zoomOut = new MenuItem("Zoom Out");
+        MenuItem zoomFullExtent = new MenuItem("Full Extent");
+        zoomIn.setOnAction(actionEvent -> mainMapView.setViewpointScaleAsync(mainMapView.getMapScale() / 4));
+        zoomOut.setOnAction(actionEvent -> mainMapView.setViewpointScaleAsync(mainMapView.getMapScale() * 4));
+        // this is a tricky way to achieve zooming to full extent, all we have to do is that, set scale to a large enough value (but not too large)
+        // MapView will automatically limit scale to the max scale value
+        zoomFullExtent.setOnAction(actionEvent -> mainMapView.setViewpointScaleAsync(1E20));
+        operationMenu.getItems().addAll(zoomIn, zoomOut, zoomFullExtent);
+
+        menuBar.getMenus().addAll(fileMenu, operationMenu);
+        StackPane.setAlignment(menuBar, Pos.TOP_LEFT);
+        StackPane.setMargin(menuBar, new Insets(0, 0, 20, 0));
+        mainPane.getChildren().add(menuBar);
     }
 
     private void initMainWindow() {
@@ -90,7 +117,7 @@ public class AppView {
         eagleMapView.setEnableTouchRotate(false);
         eagleMapView.setEnableTouchZoom(false);
         eagleMapView.setMap(eagleMap);
-        StackPane.setMargin(eagleMapView, new Insets(15));
+        StackPane.setMargin(eagleMapView, new Insets(30, 15, 15, 15));
         StackPane.setAlignment(eagleMapView, Pos.TOP_RIGHT);
         mainPane.getChildren().add(eagleMapView);
 
