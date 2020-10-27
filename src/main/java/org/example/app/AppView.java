@@ -104,6 +104,8 @@ public class AppView {
         mainMapView.setPrefSize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT);
         mainPane.getChildren().add(mainMapView);
         mainMap = new ArcGISMap(Basemap.createImagery());
+        StackPane.setAlignment(mainMapView, Pos.TOP_LEFT);
+        StackPane.setMargin(mainMapView, new Insets(30, 0, 0, 0));
         mainMapView.setMap(mainMap);
     }
 
