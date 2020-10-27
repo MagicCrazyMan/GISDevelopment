@@ -14,7 +14,7 @@ import java.util.Objects;
 public class App extends Application {
 
     static {
-        ArcGISRuntimeEnvironment.setInstallDirectory("/home/magiccrayman/Downloads/arcgis-runtime-sdk-java-100.9.0");
+        ArcGISRuntimeEnvironment.setInstallDirectory("D:\\Data\\Learning\\ArcGISRuntimesSDK\\arcgis-runtime-sdk-java-100.9.0");
     }
 
     private AppView appView;
