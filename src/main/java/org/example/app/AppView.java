@@ -1,11 +1,12 @@
 package org.example.app;
 
+import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.Viewpoint;
-import com.esri.arcgisruntime.mapping.view.MapView;
-import com.esri.arcgisruntime.mapping.view.ViewpointChangedEvent;
-import com.esri.arcgisruntime.mapping.view.ViewpointChangedListener;
+import com.esri.arcgisruntime.mapping.view.*;
+import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
+import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -13,7 +14,9 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
 
 import java.util.Objects;
@@ -78,11 +81,19 @@ public class AppView {
         StackPane.setMargin(eagleMapView, new Insets(15));
         StackPane.setAlignment(eagleMapView, Pos.BOTTOM_LEFT);
         mainPane.getChildren().add(eagleMapView);
+
+        GraphicsOverlay extentGraphicOverlay = new GraphicsOverlay();
+        eagleMapView.getGraphicsOverlays().add(extentGraphicOverlay);
+        SimpleLineSymbol extentPolygonOutline = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, 0xFFFF0000, 2);
+        SimpleFillSymbol extentPolygonSymbol = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID, 0x99FF0000, extentPolygonOutline);
         // add viewpoint changed listener to mainMapView, and sync the viewpoint to eagleMapView
         mainMapView.addViewpointChangedListener(viewpointChangedEvent -> {
             // setViewpointAsync may act in a higher performance, but it will also cause delay (because eagleMapView update viewpoint async from mainMapView, not sync)
             // so, for better visual effect, we will use sync method here
-            eagleMapView.setViewpoint(viewpointChangedEvent.getSource().getCurrentViewpoint(Viewpoint.Type.BOUNDING_GEOMETRY));
+//            eagleMapView.setViewpoint(viewpointChangedEvent.getSource().getCurrentViewpoint(Viewpoint.Type.BOUNDING_GEOMETRY));
+            // and update extent polygon here
+            extentGraphicOverlay.getGraphics().clear();
+            extentGraphicOverlay.getGraphics().add(new Graphic(mainMapView.getVisibleArea().getExtent(), extentPolygonSymbol));
         });
     }
 
