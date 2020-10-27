@@ -10,8 +10,6 @@ import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.*;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -26,9 +24,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
-import javafx.util.StringConverter;
 
-import java.lang.reflect.Method;
 import java.util.Objects;
 
 public class AppView {
@@ -47,7 +43,7 @@ public class AppView {
     Button loadGeoDatabaseBtn;
     Button loadOnlineDataBtn;
     TextField onlineDataURLText;
-    ChoiceBox<Basemap.Type> basemapMenuBtn;
+    MenuButton basemapMenuBtn;
     Button callOutBtn;
     TextField longitudeText;
     TextField latitudeText;
@@ -156,22 +152,13 @@ public class AppView {
     }
 
     private void initBasemapSelector() {
-        basemapMenuBtn = new ChoiceBox<>();
+        basemapMenuBtn = new MenuButton(Basemap.Type.IMAGERY.name());
         basemapMenuBtn.setMinWidth(300);
-        basemapMenuBtn.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(Basemap.Type type) {
-                return type.name();
-            }
-
-            @Override
-            public Basemap.Type fromString(String s) {
-                return Basemap.Type.valueOf(s);
-            }
-        });
-        basemapMenuBtn.getItems().addAll(Basemap.Type.values());
-        basemapMenuBtn.getSelectionModel().selectedIndexProperty().addListener((observableValue, number, t1) -> changeBasemapByType(basemapMenuBtn.getValue()));
-        basemapMenuBtn.getSelectionModel().select(Basemap.Type.IMAGERY);
+        for (Basemap.Type type : Basemap.Type.values()) {
+            MenuItem menuItem = new MenuItem(type.name());
+            menuItem.setOnAction(actionEvent -> changeBasemapByType(type));
+            basemapMenuBtn.getItems().add(menuItem);
+        }
         StackPane.setAlignment(basemapMenuBtn, Pos.TOP_RIGHT);
         StackPane.setMargin(basemapMenuBtn, new Insets(250, 15, 15, 15));
         mainPane.getChildren().add(basemapMenuBtn);
@@ -234,6 +221,7 @@ public class AppView {
                 mainMapView.getMap().setBasemap(Basemap.createTerrainWithLabelsVector());
                 break;
         }
+        basemapMenuBtn.setText(type.name());
     }
 
     private void initShapefileButton() {
@@ -263,7 +251,7 @@ public class AppView {
 
         loadOnlineDataBtn = new Button();
         loadOnlineDataBtn.setText("load online data");
-        loadOnlineDataBtn.setOnMouseClicked(mouseEvent -> controller.loadOnlineData(mainMapView, onlineDataURLText.getText()));
+        loadOnlineDataBtn.setOnMouseClicked(mouseEvent -> controller.loadOnlineData(mainMapView, onlineDataURLText.getText(), 0));
         StackPane.setAlignment(loadOnlineDataBtn, Pos.BOTTOM_LEFT);
         StackPane.setMargin(loadOnlineDataBtn, new Insets(15));
 

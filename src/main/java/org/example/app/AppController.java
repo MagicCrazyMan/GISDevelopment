@@ -6,6 +6,7 @@ import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReference;
 import com.esri.arcgisruntime.internal.util.StringUtil;
 import com.esri.arcgisruntime.layers.FeatureLayer;
+import com.esri.arcgisruntime.layers.WmsLayer;
 import com.esri.arcgisruntime.mapping.view.Callout;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -53,17 +55,26 @@ public class AppController {
         }
     }
 
-    public void loadOnlineData(@NotNull MapView parentMapView, @NotNull String url) {
+    public void loadOnlineData(@NotNull MapView parentMapView, @NotNull String url, int type) {
         if (StringUtil.isNullOrEmpty(url)) {
             return;
         }
-        ServiceFeatureTable serviceFeatureTable = new ServiceFeatureTable(url);
-        FeatureLayer featureLayer = new FeatureLayer(serviceFeatureTable);
-        parentMapView.getMap().getOperationalLayers().add(featureLayer);
-        featureLayer.addDoneLoadingListener(() -> {
-            featureLayer.setRenderer(getOnlineDataRenderer(featureLayer.getFeatureTable().getGeometryType()));
-            parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent());
-        });
+
+        if (type == 1) {
+            List<String> names = new ArrayList<>();
+            names.add("WMS Layer");
+            WmsLayer wmsLayer = new WmsLayer(url, names);
+            wmsLayer.addDoneLoadingListener(() -> parentMapView.setViewpointGeometryAsync(wmsLayer.getFullExtent()));
+            parentMapView.getMap().getOperationalLayers().add(wmsLayer);
+        } else {
+            ServiceFeatureTable featureTable = new ServiceFeatureTable(url);
+            FeatureLayer featureLayer = new FeatureLayer(featureTable);
+            parentMapView.getMap().getOperationalLayers().add(featureLayer);
+            featureLayer.addDoneLoadingListener(() -> {
+                featureLayer.setRenderer(getOnlineDataRenderer(featureLayer.getFeatureTable().getGeometryType()));
+                parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent());
+            });
+        }
     }
 
     private SimpleRenderer getOnlineDataRenderer(GeometryType geometryType) {
@@ -90,14 +101,14 @@ public class AppController {
 
     SimpleMarkerSymbol callOutMarker = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, 0xFFFFFF00, 10);
 
-    public void showCallOut(@NotNull MapView parentMapView,  double longitude,  double latitude) {
+    public void showCallOut(@NotNull MapView parentMapView, double longitude, double latitude) {
         Callout callout = parentMapView.getCallout();
         callout.setTitle(String.format("Longitude: %05f, Latitude: %.5f", longitude, latitude));
         callout.setDetail("");
         callout.showCalloutAt(Point.createWithM(longitude, latitude, 0, SpatialReference.create(4326)));
     }
 
-    public void showCallOut(@NotNull MapView parentMapView, @NotNull String longitude, @NotNull String latitude){
+    public void showCallOut(@NotNull MapView parentMapView, @NotNull String longitude, @NotNull String latitude) {
         if (StringUtil.isNullOrEmpty(longitude) || StringUtil.isNullOrEmpty(latitude)) {
             return;
         }
