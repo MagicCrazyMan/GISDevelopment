@@ -84,8 +84,14 @@ public class AppController {
                 FeatureLayer featureLayer = new FeatureLayer(featureTable);
                 parentMapView.getMap().getOperationalLayers().add(featureLayer);
                 featureLayer.addDoneLoadingListener(() -> {
-                    featureLayer.setRenderer(getOnlineDataRenderer(featureLayer.getFeatureTable().getGeometryType()));
-                    parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent());
+                    if (featureLayer.getLoadStatus() == LoadStatus.LOADED) {
+                        featureLayer.setRenderer(getOnlineDataRenderer(featureLayer.getFeatureTable().getGeometryType()));
+                        parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent());
+                    } else if (featureLayer.getLoadStatus() == LoadStatus.FAILED_TO_LOAD) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR, "Failed to load eSRI online data");
+                        alert.setContentText(featureLayer.getLoadError().getMessage());
+                        alert.showAndWait();
+                    }
                 });
                 break;
             }
