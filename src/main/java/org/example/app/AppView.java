@@ -361,8 +361,10 @@ public class AppView {
     private void initClickToShowCallOut() {
         mainMapView.setOnMouseClicked(mouseEvent -> {
             Point point = mainMapView.screenToLocation(new Point2D(mouseEvent.getX(), mouseEvent.getY()));
-            point = (Point) GeometryEngine.project(point, SpatialReference.create(4326));
-            controller.showCallOut(mainMapView, point);
+            if(Objects.nonNull(point)) {
+                point = (Point) GeometryEngine.project(point, SpatialReference.create(4326));
+                controller.showCallOut(mainMapView, point);
+            }
         });
     }
 
