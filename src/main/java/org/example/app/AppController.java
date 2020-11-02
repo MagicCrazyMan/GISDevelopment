@@ -2,10 +2,7 @@ package org.example.app;
 
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
 import com.esri.arcgisruntime.data.*;
-import com.esri.arcgisruntime.geometry.EnvelopeBuilder;
-import com.esri.arcgisruntime.geometry.GeometryType;
-import com.esri.arcgisruntime.geometry.Point;
-import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.geometry.*;
 import com.esri.arcgisruntime.internal.util.StringUtil;
 import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.layers.WmsLayer;
@@ -25,10 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 public class AppController {
@@ -152,6 +146,45 @@ public class AppController {
                 EnvelopeBuilder envelopeBuilder = new EnvelopeBuilder(featureLayer.getSpatialReference());
                 results.get().iterator().forEachRemaining(feature -> envelopeBuilder.unionOf(feature.getGeometry().getExtent()));
                 parentMapView.setViewpointGeometryAsync(envelopeBuilder.toGeometry());
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void clickQuery(@NotNull MapView parentView, @NotNull FeatureLayer featureLayer, @NotNull Point point) {
+        final double error = 3; // set error
+        double mapError = error * parentView.getUnitsPerDensityIndependentPixel(); // convert error from pixels to specified units
+        if (parentView.isWrapAroundEnabled()) { // if map is warp around, geometry should be normalized firstly
+            point = (Point) GeometryEngine.normalizeCentralMeridian(point);
+        }
+
+        // construct search envelop & search parameters
+        Envelope envelope = new Envelope(point.getX() - mapError, point.getY() - mapError, point.getX() + mapError, point.getY() + mapError, parentView.getSpatialReference());
+        QueryParameters queryParameters = new QueryParameters();
+        queryParameters.setGeometry(envelope);
+        queryParameters.setSpatialRelationship(QueryParameters.SpatialRelationship.INTERSECTS);
+
+        ListenableFuture<FeatureQueryResult> results = featureLayer.selectFeaturesAsync(queryParameters, FeatureLayer.SelectionMode.NEW);
+        results.addDoneListener(() -> {
+            try {
+                StringBuilder stringBuilder = new StringBuilder();
+                EnvelopeBuilder envelopeBuilder = new EnvelopeBuilder(parentView.getSpatialReference());
+                results.get().iterator().forEachRemaining(feature -> {
+                    envelopeBuilder.unionOf(feature.getGeometry().getExtent());
+                    // iterate all features and get all fields and its values
+                    Map<String, Object> attributes = feature.getAttributes();
+                    for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
+                        stringBuilder.append(attribute.getKey()).append(": ").append(attribute.getValue()).append(System.lineSeparator());
+                    }
+                });
+                parentView.setViewpointGeometryAsync(envelopeBuilder.toGeometry(), 50);
+                // show message box
+                Alert messageBox = new Alert(Alert.AlertType.INFORMATION);
+                messageBox.setTitle(featureLayer.getName() + " fields information");
+                messageBox.setContentText(stringBuilder.toString());
+                messageBox.setResizable(false);
+                messageBox.showAndWait();
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }

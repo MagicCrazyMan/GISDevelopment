@@ -4,9 +4,7 @@ import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.geometry.GeometryEngine;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReference;
-import com.esri.arcgisruntime.internal.tasks.networkanalysis.ServiceAreaTaskImpl;
 import com.esri.arcgisruntime.layers.FeatureLayer;
-import com.esri.arcgisruntime.layers.Layer;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.LayerList;
@@ -14,27 +12,16 @@ import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.*;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.css.Size;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
-import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import javafx.util.StringConverter;
 
 import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Predicate;
 
 public class AppView {
 
@@ -87,7 +74,7 @@ public class AppView {
         initOnlineDataButton();
         initBasemapSelector();
         initCallOutButton();
-        initClickToShowCallOut();
+        initMapViewClicker();
         primaryStage.show();
     }
 
@@ -368,10 +355,13 @@ public class AppView {
         contentPane.getChildren().addAll(callOutBtn, longitudeText, latitudeText);
     }
 
-    private void initClickToShowCallOut() {
+    private void initMapViewClicker() {
         mainMapView.setOnMouseClicked(mouseEvent -> {
             Point point = mainMapView.screenToLocation(new Point2D(mouseEvent.getX(), mouseEvent.getY()));
-            if(Objects.nonNull(point)) {
+            if (Objects.nonNull(point)) {
+                if (mainMap.getOperationalLayers().size() > 0) {
+                    controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), point);
+                }
                 point = (Point) GeometryEngine.project(point, SpatialReference.create(4326));
                 controller.showCallOut(mainMapView, point);
             }
