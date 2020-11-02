@@ -12,11 +12,13 @@ import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.*;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.DragEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
@@ -355,12 +357,20 @@ public class AppView {
         contentPane.getChildren().addAll(callOutBtn, longitudeText, latitudeText);
     }
 
+    boolean isDragging = false;
+
     private void initMapViewClicker() {
+        mainMapView.setOnDragDetected(mouseEvent -> isDragging = true);
         mainMapView.setOnMouseClicked(mouseEvent -> {
-            Point point = mainMapView.screenToLocation(new Point2D(mouseEvent.getX(), mouseEvent.getY()));
-            if (Objects.nonNull(point)) {
-                if (mainMap.getOperationalLayers().size() > 0) controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), point);
-                controller.showCallOut(mainMapView, point);
+            if (!isDragging) {
+                Point point = mainMapView.screenToLocation(new Point2D(mouseEvent.getX(), mouseEvent.getY()));
+                if (Objects.nonNull(point)) {
+                    if (mainMap.getOperationalLayers().size() > 0)
+                        controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), point);
+                    controller.showCallOut(mainMapView, point);
+                }
+            } else {
+                isDragging = false;
             }
         });
     }

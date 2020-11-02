@@ -83,6 +83,8 @@ public class AppController {
                 parentMapView.getMap().getOperationalLayers().add(featureLayer);
                 featureLayer.addDoneLoadingListener(() -> {
                     if (featureLayer.getLoadStatus() == LoadStatus.LOADED) {
+                        featureLayer.setMaxScale(0);
+                        featureLayer.setMinScale(Double.MAX_VALUE);
                         featureLayer.setRenderer(getOnlineDataRenderer(featureLayer.getFeatureTable().getGeometryType()));
                         parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent());
                     } else if (featureLayer.getLoadStatus() == LoadStatus.FAILED_TO_LOAD) {
