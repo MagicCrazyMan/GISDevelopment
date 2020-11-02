@@ -181,11 +181,13 @@ public class AppController {
                 });
                 parentView.setViewpointGeometryAsync(envelopeBuilder.toGeometry(), 50);
                 // show message box
-                Alert messageBox = new Alert(Alert.AlertType.INFORMATION);
-                messageBox.setTitle(featureLayer.getName() + " fields information");
-                messageBox.setContentText(stringBuilder.toString());
-                messageBox.setResizable(false);
-                messageBox.showAndWait();
+                if (!stringBuilder.toString().isEmpty()) {
+                    Alert messageBox = new Alert(Alert.AlertType.INFORMATION);
+                    messageBox.setTitle(featureLayer.getName() + " fields information");
+                    messageBox.setContentText(stringBuilder.toString());
+                    messageBox.setResizable(false);
+                    messageBox.showAndWait();
+                }
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
