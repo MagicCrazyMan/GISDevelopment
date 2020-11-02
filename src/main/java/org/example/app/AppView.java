@@ -55,6 +55,7 @@ public class AppView {
     StackPane contentPane;
     ArcGISMap mainMap;
     ArcGISMap eagleMap;
+    Button refreshButton;
     Button loadShapefileBtn;
     Button loadGeoDatabaseBtn;
     Button loadOnlineDataBtn;
@@ -79,6 +80,7 @@ public class AppView {
         initMainWindow();
         initMenuBar();
         initMapView();
+        initRefreshButton();
         initEagleMap();
         initShapefileButton();
         initGeoDatabaseButton();
@@ -201,6 +203,14 @@ public class AppView {
             extentGraphicOverlay.getGraphics().clear();
             extentGraphicOverlay.getGraphics().add(new Graphic(mainMapView.getVisibleArea().getExtent(), extentPolygonSymbol));
         });
+    }
+
+    private void initRefreshButton() {
+        refreshButton = new Button("Refresh Basemap");
+        refreshButton.setOnAction(actionEvent -> mainMap.retryLoadAsync());
+        StackPane.setAlignment(refreshButton, Pos.TOP_LEFT);
+        StackPane.setMargin(refreshButton, new Insets(15));
+        contentPane.getChildren().add(refreshButton);
     }
 
     private void initBasemapSelector() {
