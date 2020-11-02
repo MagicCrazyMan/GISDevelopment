@@ -120,8 +120,6 @@ public class AppController {
         }
     }
 
-    SimpleMarkerSymbol callOutMarker = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, 0xFFFFFF00, 10);
-
     public void showCallOut(@NotNull MapView parentMapView, double longitude, double latitude) {
         Callout callout = parentMapView.getCallout();
         callout.setTitle(String.format("Longitude: %05f, Latitude: %.5f", longitude, latitude));
