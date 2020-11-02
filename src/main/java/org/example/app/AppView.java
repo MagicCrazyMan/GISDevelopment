@@ -196,7 +196,7 @@ public class AppView {
 
     private void initRefreshButton() {
         refreshButton = new Button("Refresh Basemap");
-        refreshButton.setOnAction(actionEvent -> mainMap.retryLoadAsync());
+        refreshButton.setOnAction(actionEvent -> mainMap.loadAsync());
         StackPane.setAlignment(refreshButton, Pos.TOP_LEFT);
         StackPane.setMargin(refreshButton, new Insets(15));
         contentPane.getChildren().add(refreshButton);
