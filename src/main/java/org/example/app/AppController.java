@@ -136,6 +136,7 @@ public class AppController {
     }
 
     public void showCallOut(@NotNull MapView parentMapView, @NotNull Point point) {
+        point = (Point) GeometryEngine.project(point, SpatialReference.create(4326));
         this.showCallOut(parentMapView, point.getX(), point.getY());
     }
 

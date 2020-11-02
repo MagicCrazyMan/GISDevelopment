@@ -359,10 +359,7 @@ public class AppView {
         mainMapView.setOnMouseClicked(mouseEvent -> {
             Point point = mainMapView.screenToLocation(new Point2D(mouseEvent.getX(), mouseEvent.getY()));
             if (Objects.nonNull(point)) {
-                if (mainMap.getOperationalLayers().size() > 0) {
-                    controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), point);
-                }
-                point = (Point) GeometryEngine.project(point, SpatialReference.create(4326));
+                if (mainMap.getOperationalLayers().size() > 0) controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), point);
                 controller.showCallOut(mainMapView, point);
             }
         });
