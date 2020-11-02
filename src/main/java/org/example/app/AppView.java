@@ -126,7 +126,6 @@ public class AppView {
 
         queryMenu = new Menu("Query");
         MenuItem simpleQuery = new MenuItem("Simple Query");
-        MenuItem clickQuery = new MenuItem("Click Query");
         MenuItem identifyQuery = new MenuItem("Identify Query");
         simpleQuery.setOnAction(actionEvent -> {
             final String fieldName = "Name";
@@ -138,7 +137,7 @@ public class AppView {
                 controller.simpleQuery(mainMapView, (FeatureLayer) layers.get(0), queryParameters);
             }
         });
-        queryMenu.getItems().addAll(simpleQuery, clickQuery, identifyQuery);
+        queryMenu.getItems().addAll(simpleQuery, identifyQuery);
 
         menuBar.getMenus().addAll(fileMenu, operationMenu, queryMenu);
         StackPane.setAlignment(menuBar, Pos.TOP_LEFT);
