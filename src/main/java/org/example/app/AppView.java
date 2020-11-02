@@ -1,11 +1,15 @@
 package org.example.app;
 
+import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.geometry.GeometryEngine;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.internal.tasks.networkanalysis.ServiceAreaTaskImpl;
 import com.esri.arcgisruntime.layers.FeatureLayer;
+import com.esri.arcgisruntime.layers.Layer;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.LayerList;
 import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.*;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
@@ -29,6 +33,8 @@ import javafx.stage.WindowEvent;
 import javafx.util.StringConverter;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 public class AppView {
 
@@ -44,6 +50,7 @@ public class AppView {
     MenuBar menuBar;
     Menu fileMenu;
     Menu operationMenu;
+    Menu queryMenu;
     GridPane mainPane;
     StackPane contentPane;
     ArcGISMap mainMap;
@@ -61,7 +68,7 @@ public class AppView {
     MapView mainMapView;
     MapView eagleMapView;
 
-    private AppController controller = new AppController();
+    private final AppController controller = new AppController();
 
     public void start(Stage stage) {
         drawMainWindow(stage);
@@ -130,7 +137,23 @@ public class AppView {
         counterclockwiseRotate.setOnAction(actionEvent -> mainMapView.setViewpointRotationAsync(mainMapView.getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getRotation() - Math.PI / 2));
         operationMenu.getItems().addAll(zoomIn, zoomOut, zoomFullExtent, clockwiseRotate, counterclockwiseRotate);
 
-        menuBar.getMenus().addAll(fileMenu, operationMenu);
+        queryMenu = new Menu("Query");
+        MenuItem simpleQuery = new MenuItem("Simple Query");
+        MenuItem clickQuery = new MenuItem("Click Query");
+        MenuItem identifyQuery = new MenuItem("Identify Query");
+        simpleQuery.setOnAction(actionEvent -> {
+            final String fieldName = "Name";
+            final String stateName = "New York";
+            final QueryParameters queryParameters = new QueryParameters();
+            queryParameters.setWhereClause(String.format("upper(%s) LIKE '%%%s%%'", fieldName, stateName));
+            LayerList layers = mainMap.getOperationalLayers();
+            if (layers.size() > 0) {
+                controller.simpleQuery(mainMapView, (FeatureLayer) layers.get(0), queryParameters);
+            }
+        });
+        queryMenu.getItems().addAll(simpleQuery, clickQuery, identifyQuery);
+
+        menuBar.getMenus().addAll(fileMenu, operationMenu, queryMenu);
         StackPane.setAlignment(menuBar, Pos.TOP_LEFT);
         StackPane.setMargin(menuBar, new Insets(0, 0, 20, 0));
         mainPane.add(menuBar, 0, 0);

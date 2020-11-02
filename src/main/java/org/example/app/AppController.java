@@ -1,6 +1,8 @@
 package org.example.app;
 
+import com.esri.arcgisruntime.concurrent.ListenableFuture;
 import com.esri.arcgisruntime.data.*;
+import com.esri.arcgisruntime.geometry.EnvelopeBuilder;
 import com.esri.arcgisruntime.geometry.GeometryType;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReference;
@@ -14,6 +16,7 @@ import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import com.esri.arcgisruntime.symbology.SimpleRenderer;
+import com.esri.arcgisruntime.util.ListenableList;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Alert;
 import javafx.stage.FileChooser;
@@ -26,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 
 public class AppController {
 
@@ -139,6 +143,19 @@ public class AppController {
 
     public void showCallOut(@NotNull MapView parentMapView, @NotNull Point point) {
         this.showCallOut(parentMapView, point.getX(), point.getY());
+    }
+
+    public void simpleQuery(@NotNull MapView parentMapView, @NotNull FeatureLayer featureLayer, @NotNull QueryParameters queryParameters) {
+        ListenableFuture<FeatureQueryResult> results = featureLayer.selectFeaturesAsync(queryParameters, FeatureLayer.SelectionMode.NEW);
+        results.addDoneListener(() -> {
+            try {
+                EnvelopeBuilder envelopeBuilder = new EnvelopeBuilder(featureLayer.getSpatialReference());
+                results.get().iterator().forEachRemaining(feature -> envelopeBuilder.unionOf(feature.getGeometry().getExtent()));
+                parentMapView.setViewpointGeometryAsync(envelopeBuilder.toGeometry());
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     private File selectSingleFile(@Nullable Window parentWindow, @NotNull String title, @Nullable FileChooser.ExtensionFilter... extensionFilter) {
