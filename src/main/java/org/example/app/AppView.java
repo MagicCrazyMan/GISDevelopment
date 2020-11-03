@@ -251,7 +251,7 @@ public class AppView {
         layerPane.setOnDragOver(dragEvent -> {
             Dragboard db = dragEvent.getDragboard();
             if (db.hasFiles()) {
-                dragEvent.acceptTransferModes(TransferMode.COPY);
+                dragEvent.acceptTransferModes(TransferMode.ANY);
             } else {
                 dragEvent.consume();
             }
