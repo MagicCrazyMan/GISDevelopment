@@ -265,12 +265,18 @@ public class AppController {
         }
     }
 
+    private File lastVisitedDir = null;
+
     private File selectSingleFile(@Nullable Window parentWindow, @NotNull String title, @Nullable FileChooser.ExtensionFilter... extensionFilter) {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        fileChooser.setInitialDirectory(Objects.isNull(lastVisitedDir) ? new File(System.getProperty("user.home")) : lastVisitedDir);
         fileChooser.getExtensionFilters().addAll(extensionFilter);
         fileChooser.setTitle(title);
-        return fileChooser.showOpenDialog(parentWindow);
+        File file = fileChooser.showOpenDialog(parentWindow);
+        if (Objects.nonNull(file)) {
+            lastVisitedDir = file.getParentFile();
+        }
+        return file;
     }
 }
 
