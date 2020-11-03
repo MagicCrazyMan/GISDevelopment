@@ -190,7 +190,6 @@ public class AppController {
         ListenableFuture<IdentifyLayerResult> results = parentView.identifyLayerAsync(featureLayer, point, error, false);
         results.addDoneListener(() -> {
             try {
-                System.out.println(results.get().getElements().size());
                 if (!results.get().getElements().isEmpty()) {
                     GeoElement geoElement = results.get().getElements().get(0); // only the first element is needed
                     clickQueryFeaturesProcess(featureLayer, geoElement.getAttributes());
