@@ -109,7 +109,7 @@ public class AppView {
         exitMenuItem.setOnAction(actionEvent -> System.exit(0));
         fileMenu.getItems().addAll(exitMenuItem);
 
-        operationMenu = new Menu("Operations");
+        operationMenu = new Menu("View");
         MenuItem zoomIn = new MenuItem("Zoom In");
         MenuItem zoomOut = new MenuItem("Zoom Out");
         MenuItem zoomFullExtent = new MenuItem("Full Extent");
@@ -285,7 +285,7 @@ public class AppView {
 
     private void initShapefileButton() {
         loadShapefileBtn = new Button();
-        loadShapefileBtn.setText("load shapefile");
+        loadShapefileBtn.setText("Load Shapefile");
         loadShapefileBtn.setDefaultButton(true);
         loadShapefileBtn.setOnMouseClicked(mouseEvent -> controller.loadShapefile(primaryStage, mainMapView));
         StackPane.setAlignment(loadShapefileBtn, Pos.BOTTOM_RIGHT);
@@ -296,7 +296,7 @@ public class AppView {
 
     private void initGeoDatabaseButton() {
         loadGeoDatabaseBtn = new Button();
-        loadGeoDatabaseBtn.setText("load geodatabse");
+        loadGeoDatabaseBtn.setText("Load GeoDatabase");
         loadGeoDatabaseBtn.setOnMouseClicked(mouseEvent -> controller.loadGeoDatabase(primaryStage, mainMapView));
         StackPane.setAlignment(loadGeoDatabaseBtn, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(loadGeoDatabaseBtn, new Insets(15, 130, 15, 15));
