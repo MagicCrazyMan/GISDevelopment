@@ -9,7 +9,12 @@ import java.util.Objects;
 public class App extends Application {
 
     static {
-        ArcGISRuntimeEnvironment.setInstallDirectory("D:\\Data\\Learning\\ArcGISRuntimesSDK\\arcgis-runtime-sdk-java-100.9.0");
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.equals("linux")) {
+            ArcGISRuntimeEnvironment.setInstallDirectory("/home/magiccrayman/Downloads/arcgis-runtime-sdk-java-100.9.0");
+        } else if (os.equals("windows")) {
+            ArcGISRuntimeEnvironment.setInstallDirectory("D:\\Data\\Learning\\ArcGISRuntimesSDK\\arcgis-runtime-sdk-java-100.9.0");
+        }
     }
 
     private AppView appView;
