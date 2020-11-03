@@ -214,7 +214,7 @@ public class AppController {
             messageBox.setTitle(featureLayer.getName() + " fields information");
             messageBox.setContentText(stringBuilder.toString());
             messageBox.setResizable(false);
-            messageBox.showAndWait();
+            messageBox.show();
         }
     }
 
