@@ -33,8 +33,8 @@ import java.util.Stack;
 
 public class AppView {
 
-    private final int MAIN_WINDOW_HEIGHT = 700;
-    private final int MAIN_WINDOW_WIDTH = 1200;
+    private final int MAIN_WINDOW_HEIGHT = 800;
+    private final int MAIN_WINDOW_WIDTH = 1400;
 
     public enum OnlineDataType {
         ESRI_SERVICE,
