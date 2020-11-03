@@ -117,6 +117,9 @@ public class AppView {
             if (Objects.nonNull(simpleQueryStage)) {
                 simpleQueryStage.close();
             }
+            if (Objects.nonNull(clickQueryStage)) {
+                clickQueryStage.close();
+            }
         });
 
         mainPane = new GridPane();
