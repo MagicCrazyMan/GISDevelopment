@@ -240,7 +240,7 @@ public class AppView {
 
         ScrollPane scrollPane = new ScrollPane();
         layerPane = new VBox();
-        layerPane.setSpacing(5);
+        layerPane.setSpacing(15);
         layerPane.setPadding(new Insets(5));
         scrollPane.setContent(layerPane);
         mainPane.add(scrollPane, 0, 1);
