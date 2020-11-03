@@ -35,6 +35,8 @@ public class AppController {
         if (Objects.nonNull(file)) {
             ShapefileFeatureTable shapefileFeatureTable = new ShapefileFeatureTable(file.getAbsolutePath());
             FeatureLayer featureLayer = new FeatureLayer(shapefileFeatureTable);
+            featureLayer.setName(file.getName());
+            featureLayer.setId(file.getAbsolutePath());
             // ATTENTION! setViewpoint by shapefile extent may has no effect when shapefile haven't done loading
             // difference from C# SDK, ShapefileFeatureTable doesn't have async method to load
             // so, in Java, we have to add a DoneLoadingListener to capture the done loading event, and set viewpoint after finishing loading
@@ -52,6 +54,8 @@ public class AppController {
                 List<GeodatabaseFeatureTable> list = geodatabase.getGeodatabaseFeatureTables();
                 for (GeodatabaseFeatureTable geodatabaseFeatureTable : list) {
                     FeatureLayer featureLayer = new FeatureLayer(geodatabaseFeatureTable);
+                    featureLayer.setName(geodatabaseFeatureTable.getDisplayName());
+                    featureLayer.setId(geodatabaseFeatureTable.getTableName());
                     parentMapView.getMap().getOperationalLayers().add(featureLayer);
                     featureLayer.addDoneLoadingListener(() -> parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent()));
                 }
@@ -64,6 +68,8 @@ public class AppController {
         if (Objects.nonNull(file)) {
             Raster raster = new Raster(file.getAbsolutePath());
             RasterLayer rasterLayer = new RasterLayer(raster);
+            rasterLayer.setName(file.getName());
+            rasterLayer.setId(file.getAbsolutePath());
             parentMapView.getMap().getOperationalLayers().add(rasterLayer);
             rasterLayer.addDoneLoadingListener(() -> {
                 if (rasterLayer.getLoadStatus() == LoadStatus.LOADED) {
@@ -97,6 +103,8 @@ public class AppController {
             case ESRI_SERVICE: {
                 ServiceFeatureTable featureTable = new ServiceFeatureTable(url);
                 FeatureLayer featureLayer = new FeatureLayer(featureTable);
+                featureLayer.setName(featureTable.getDisplayName());
+                featureLayer.setId(featureTable.getTableName());
                 parentMapView.getMap().getOperationalLayers().add(featureLayer);
                 featureLayer.addDoneLoadingListener(() -> {
                     if (featureLayer.getLoadStatus() == LoadStatus.LOADED) {
