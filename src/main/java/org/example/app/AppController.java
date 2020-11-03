@@ -49,7 +49,7 @@ public class AppController {
         // ATTENTION! setViewpoint by shapefile extent may has no effect when shapefile haven't done loading
         // difference from C# SDK, ShapefileFeatureTable doesn't have async method to load
         // so, in Java, we have to add a DoneLoadingListener to capture the done loading event, and set viewpoint after finishing loading
-        featureLayer.addDoneLoadingListener(() -> parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent()));
+        featureLayer.addDoneLoadingListener(() -> parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent(), 50));
         parentMapView.getMap().getOperationalLayers().add(featureLayer);
     }
 
@@ -71,7 +71,7 @@ public class AppController {
                 featureLayer.setName(geodatabaseFeatureTable.getDisplayName());
                 featureLayer.setId(geodatabaseFeatureTable.getTableName());
                 parentMapView.getMap().getOperationalLayers().add(featureLayer);
-                featureLayer.addDoneLoadingListener(() -> parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent()));
+                featureLayer.addDoneLoadingListener(() -> parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent(), 50));
             }
         });
     }
@@ -114,7 +114,7 @@ public class AppController {
                 WmsLayer wmsLayer = new WmsLayer(url, names);
                 wmsLayer.addDoneLoadingListener(() -> {
                     if (wmsLayer.getLoadStatus() == LoadStatus.LOADED) {
-                        parentMapView.setViewpointGeometryAsync(wmsLayer.getFullExtent());
+                        parentMapView.setViewpointGeometryAsync(wmsLayer.getFullExtent(), 50);
                     } else if (wmsLayer.getLoadStatus() == LoadStatus.FAILED_TO_LOAD) {
                         Alert alert = new Alert(Alert.AlertType.ERROR, "Failed to load WMS layer");
                         alert.setContentText(wmsLayer.getLoadError().getMessage());
@@ -135,7 +135,7 @@ public class AppController {
                         featureLayer.setMaxScale(0);
                         featureLayer.setMinScale(Double.MAX_VALUE);
                         featureLayer.setRenderer(getOnlineDataRenderer(featureLayer.getFeatureTable().getGeometryType()));
-                        parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent());
+                        parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent(), 50);
                     } else if (featureLayer.getLoadStatus() == LoadStatus.FAILED_TO_LOAD) {
                         Alert alert = new Alert(Alert.AlertType.ERROR, "Failed to load eSRI online data");
                         alert.setContentText(featureLayer.getLoadError().getMessage());
@@ -197,7 +197,7 @@ public class AppController {
             try {
                 EnvelopeBuilder envelopeBuilder = new EnvelopeBuilder(featureLayer.getSpatialReference());
                 results.get().iterator().forEachRemaining(feature -> envelopeBuilder.unionOf(feature.getGeometry().getExtent()));
-                parentMapView.setViewpointGeometryAsync(envelopeBuilder.toGeometry());
+                parentMapView.setViewpointGeometryAsync(envelopeBuilder.toGeometry(), 50);
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
