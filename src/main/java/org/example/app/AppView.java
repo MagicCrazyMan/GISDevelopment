@@ -503,7 +503,7 @@ public class AppView {
         onlineDataTypeChoiceBox.getSelectionModel().select(OnlineDataType.ESRI_SERVICE);
 
         loadOnlineDataBtn = new Button();
-        loadOnlineDataBtn.setText("load online data");
+        loadOnlineDataBtn.setText("Load Online Data");
         loadOnlineDataBtn.setOnMouseClicked(mouseEvent -> controller.loadOnlineData(mainMapView, onlineDataURLText.getText(), onlineDataTypeChoiceBox.getSelectionModel().getSelectedItem()));
 
         bottomLeftToolbar.getItems().addAll(loadOnlineDataBtn, onlineDataURLText, onlineDataTypeChoiceBox);
