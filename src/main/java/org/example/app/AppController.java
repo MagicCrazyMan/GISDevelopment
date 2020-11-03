@@ -172,25 +172,13 @@ public class AppController {
         ListenableFuture<FeatureQueryResult> results = featureLayer.selectFeaturesAsync(queryParameters, FeatureLayer.SelectionMode.NEW);
         results.addDoneListener(() -> {
             try {
-                StringBuilder stringBuilder = new StringBuilder();
                 EnvelopeBuilder envelopeBuilder = new EnvelopeBuilder(parentView.getSpatialReference());
                 results.get().iterator().forEachRemaining(feature -> {
                     envelopeBuilder.unionOf(feature.getGeometry().getExtent());
                     // iterate all features and get all fields and its values
-                    Map<String, Object> attributes = feature.getAttributes();
-                    for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
-                        stringBuilder.append(attribute.getKey()).append(": ").append(attribute.getValue()).append(System.lineSeparator());
-                    }
+                    clickQueryFeaturesProcess(featureLayer, feature.getAttributes());
                 });
                 parentView.setViewpointGeometryAsync(envelopeBuilder.toGeometry(), 50);
-                // show message box
-                if (!stringBuilder.toString().isEmpty()) {
-                    Alert messageBox = new Alert(Alert.AlertType.INFORMATION);
-                    messageBox.setTitle(featureLayer.getName() + " fields information");
-                    messageBox.setContentText(stringBuilder.toString());
-                    messageBox.setResizable(false);
-                    messageBox.showAndWait();
-                }
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
