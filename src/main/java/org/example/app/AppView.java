@@ -248,6 +248,8 @@ public class AppView {
 
         layerPane = new ListView<>();
         layerPane.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        // drag and drop should first calls acceptTransferModes() on setOnDragOver()
+        // and when things dropped, setOnDragDropped() will be called, otherwise, setOnDragDropped() may not raise
         layerPane.setOnDragOver(dragEvent -> {
             Dragboard db = dragEvent.getDragboard();
             if (db.hasFiles()) {
