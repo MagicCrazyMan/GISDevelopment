@@ -10,7 +10,6 @@ public class App extends Application {
 
     static {
         String os = System.getProperty("os.name").toLowerCase();
-        System.out.println(os);
         if (os.startsWith("linux")) {
             ArcGISRuntimeEnvironment.setInstallDirectory("/home/magiccrayman/Downloads/arcgis-runtime-sdk-java-100.9.0");
         } else if (os.startsWith("windows")) {
