@@ -30,8 +30,10 @@ import java.util.concurrent.ExecutionException;
 
 public class AppController {
 
-    public void loadShapefile(@Nullable Window parentWindow, @NotNull MapView parentMapView) {
-        File file = selectSingleFile(parentWindow, "Select shapefile", new FileChooser.ExtensionFilter("Shapefile format filed (.shp)", "*.shp"));
+    public void loadShapefile(@Nullable Window parentWindow, @NotNull MapView parentMapView, @Nullable File file) {
+        if (Objects.isNull(file)) {
+            file = selectSingleFile(parentWindow, "Select shapefile", new FileChooser.ExtensionFilter("Shapefile format filed (.shp)", "*.shp"));
+        }
         if (Objects.nonNull(file)) {
             ShapefileFeatureTable shapefileFeatureTable = new ShapefileFeatureTable(file.getAbsolutePath());
             FeatureLayer featureLayer = new FeatureLayer(shapefileFeatureTable);

@@ -16,18 +16,23 @@ import com.esri.arcgisruntime.util.ListChangedEvent;
 import com.esri.arcgisruntime.util.ListChangedListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.Objects;
 import java.util.Stack;
 
@@ -242,6 +247,21 @@ public class AppView {
         layerPane = new VBox();
         layerPane.setSpacing(15);
         layerPane.setPadding(new Insets(5));
+        scrollPane.setOnDragOver(dragEvent -> {
+            Dragboard db = dragEvent.getDragboard();
+            if (db.hasFiles()) {
+                dragEvent.acceptTransferModes(TransferMode.COPY);
+            } else {
+                dragEvent.consume();
+            }
+        });
+        scrollPane.setOnDragDropped(dragEvent -> {
+            Dragboard db = dragEvent.getDragboard();
+            if (db.hasFiles() && db.getFiles().size() > 0) {
+                File file = db.getFiles().get(0);
+                controller.loadShapefile(primaryStage, mainMapView, file);
+            }
+        });
         scrollPane.setContent(layerPane);
         mainPane.add(scrollPane, 0, 1);
     }
@@ -438,7 +458,7 @@ public class AppView {
         loadShapefileBtn = new Button();
         loadShapefileBtn.setText("Load Shapefile");
         loadShapefileBtn.setDefaultButton(true);
-        loadShapefileBtn.setOnMouseClicked(mouseEvent -> controller.loadShapefile(primaryStage, mainMapView));
+        loadShapefileBtn.setOnMouseClicked(mouseEvent -> controller.loadShapefile(primaryStage, mainMapView, null));
         bottomRightToolbar.getItems().add(loadShapefileBtn);
     }
 
