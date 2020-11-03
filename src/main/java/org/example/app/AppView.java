@@ -258,8 +258,9 @@ public class AppView {
         scrollPane.setOnDragDropped(dragEvent -> {
             Dragboard db = dragEvent.getDragboard();
             if (db.hasFiles() && db.getFiles().size() > 0) {
-                File file = db.getFiles().get(0);
-                controller.loadShapefile(primaryStage, mainMapView, file);
+                for (File file : db.getFiles()) {
+                    controller.routeLoadFile(mainMapView, file);
+                }
             }
         });
         scrollPane.setContent(layerPane);
@@ -458,7 +459,7 @@ public class AppView {
         loadShapefileBtn = new Button();
         loadShapefileBtn.setText("Load Shapefile");
         loadShapefileBtn.setDefaultButton(true);
-        loadShapefileBtn.setOnMouseClicked(mouseEvent -> controller.loadShapefile(primaryStage, mainMapView, null));
+        loadShapefileBtn.setOnMouseClicked(mouseEvent -> controller.loadShapefile(primaryStage, mainMapView));
         bottomRightToolbar.getItems().add(loadShapefileBtn);
     }
 
