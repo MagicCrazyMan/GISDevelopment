@@ -54,6 +54,8 @@ public class AppView {
     MapView mainMapView;
     MapView eagleMapView;
 
+    Stage simpleQueryStage;
+
     private final AppController controller = new AppController();
 
     public void start(Stage stage) {
@@ -81,6 +83,11 @@ public class AppView {
         primaryStage.setOnShown(windowEvent -> {
             primaryStage.setMinHeight(primaryStage.getHeight());
             primaryStage.setMinWidth(primaryStage.getWidth());
+        });
+        primaryStage.setOnCloseRequest(windowEvent -> {
+            if (Objects.nonNull(simpleQueryStage)) {
+                simpleQueryStage.close();
+            }
         });
 
         mainPane = new GridPane();
@@ -128,13 +135,35 @@ public class AppView {
         MenuItem simpleQuery = new MenuItem("Simple Query");
         MenuItem identifyQuery = new MenuItem("Identify Query");
         simpleQuery.setOnAction(actionEvent -> {
-            final String fieldName = "Name";
-            final String stateName = "New York";
-            final QueryParameters queryParameters = new QueryParameters();
-            queryParameters.setWhereClause(String.format("upper(%s) LIKE '%%%s%%'", fieldName, stateName));
-            LayerList layers = mainMap.getOperationalLayers();
-            if (layers.size() > 0) {
-                controller.simpleQuery(mainMapView, (FeatureLayer) layers.get(0), queryParameters);
+            if (Objects.isNull(simpleQueryStage)) {
+                StackPane simpleQueryPane = new StackPane();
+                ToolBar toolBar = new ToolBar();
+                Label nameLabel = new Label("Field Name");
+                Label valueLabel = new Label("Field Value");
+                TextField nameText = new TextField();
+                TextField valueText = new TextField();
+                Button queryBtn = new Button("Query");
+                queryBtn.setOnAction(actionEvent1 -> {
+                    if (!nameText.getText().isEmpty() && !valueText.getText().isEmpty()) {
+                        QueryParameters queryParameters = new QueryParameters();
+                        queryParameters.setWhereClause(String.format("upper(%s) LIKE '%%%s%%'", nameText.getText(), valueText.getText()));
+                        LayerList layers = mainMap.getOperationalLayers();
+                        if (layers.size() > 0) {
+                            controller.simpleQuery(mainMapView, (FeatureLayer) layers.get(0), queryParameters);
+                        }
+                    }
+                });
+                nameText.setMinWidth(100);
+                valueText.setMinWidth(100);
+                toolBar.getItems().addAll(nameLabel, nameText, valueLabel, valueText, queryBtn);
+                simpleQueryPane.getChildren().add(toolBar);
+
+                simpleQueryStage = new Stage();
+                simpleQueryStage.setTitle("Simple Query");
+                simpleQueryStage.setResizable(false);
+                simpleQueryStage.setScene(new Scene(simpleQueryPane));
+                simpleQueryStage.setOnCloseRequest(windowEvent -> simpleQueryStage = null);
+                simpleQueryStage.show();
             }
         });
         queryMenu.getItems().addAll(simpleQuery, identifyQuery);
