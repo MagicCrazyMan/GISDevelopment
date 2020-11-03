@@ -39,6 +39,7 @@ public class AppView {
     Menu queryMenu;
     GridPane mainPane;
     StackPane contentPane;
+    VBox layerPane;
     ArcGISMap mainMap;
     ArcGISMap eagleMap;
     Button refreshButton;
@@ -77,8 +78,8 @@ public class AppView {
         primaryStage = stage;
         initMainWindow();
         initMenuBar();
-        initMapView();
         initLayersManager();
+        initMapView();
         initToolbars();
         initRefreshButton();
         initEagleMap();
@@ -217,9 +218,23 @@ public class AppView {
         queryMenu.getItems().addAll(simpleQuery, clickQuery);
 
         menuBar.getMenus().addAll(fileMenu, operationMenu, queryMenu);
-        StackPane.setAlignment(menuBar, Pos.TOP_LEFT);
-        StackPane.setMargin(menuBar, new Insets(0, 0, 20, 0));
+        GridPane.setColumnSpan(menuBar, GridPane.REMAINING);
         mainPane.add(menuBar, 0, 0);
+    }
+
+    private void initLayersManager() {
+        ColumnConstraints columnConstraints = new ColumnConstraints();
+        columnConstraints.setMinWidth(200);
+        columnConstraints.setPrefWidth(200);
+        columnConstraints.setMaxWidth(200);
+        mainPane.getColumnConstraints().add(0, columnConstraints);
+
+        ScrollPane scrollPane = new ScrollPane();
+        layerPane = new VBox();
+        layerPane.setSpacing(5);
+        layerPane.setPadding(new Insets(5));
+        scrollPane.setContent(layerPane);
+        mainPane.add(scrollPane, 0, 1);
     }
 
     private void initMapView() {
@@ -227,7 +242,7 @@ public class AppView {
         contentPane.setMinSize(0, 0);
         contentPane.setPrefSize(StackPane.USE_COMPUTED_SIZE, StackPane.USE_COMPUTED_SIZE);
         contentPane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        mainPane.add(contentPane, 0, 1);
+        mainPane.add(contentPane, 1, 1);
 
         mainMapView = new MapView();
         mainMap = new ArcGISMap(Basemap.createImagery());
@@ -235,10 +250,6 @@ public class AppView {
         mainMapView.setMap(mainMap);
 
         contentPane.getChildren().add(mainMapView);
-    }
-
-    private void initLayersManager() {
-
     }
 
     private void initToolbars() {
