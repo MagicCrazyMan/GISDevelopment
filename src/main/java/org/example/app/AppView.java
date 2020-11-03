@@ -18,6 +18,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -65,6 +66,9 @@ public class AppView {
     TextField onlineDataURLText;
     ChoiceBox<Basemap.Type> basemapChoiceBox;
     ToolBar bottomRightToolbar;
+    ToolBar bottomLeftToolbar;
+    ToolBar topLeftToolbar;
+    ToolBar topRightToolbar;
 
     MapView mainMapView;
     MapView eagleMapView;
@@ -320,19 +324,42 @@ public class AppView {
 
     private void initToolbars() {
         bottomRightToolbar = new ToolBar();
+        bottomLeftToolbar = new ToolBar();
+        topLeftToolbar = new ToolBar();
+        topRightToolbar = new ToolBar();
+
         bottomRightToolbar.setPrefSize(Control.USE_COMPUTED_SIZE, Control.USE_COMPUTED_SIZE);
         bottomRightToolbar.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         bottomRightToolbar.setMaxSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         bottomRightToolbar.setStyle("-fx-background-color: transparent");
         StackPane.setAlignment(bottomRightToolbar, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(bottomRightToolbar, new Insets(15));
+        bottomLeftToolbar.setPrefSize(Control.USE_COMPUTED_SIZE, Control.USE_COMPUTED_SIZE);
+        bottomLeftToolbar.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        bottomLeftToolbar.setMaxSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        bottomLeftToolbar.setStyle("-fx-background-color: transparent");
+        StackPane.setAlignment(bottomLeftToolbar, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(bottomLeftToolbar, new Insets(15));
+        topLeftToolbar.setPrefSize(Control.USE_COMPUTED_SIZE, Control.USE_COMPUTED_SIZE);
+        topLeftToolbar.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        topLeftToolbar.setMaxSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        topLeftToolbar.setStyle("-fx-background-color: transparent");
+        StackPane.setAlignment(topLeftToolbar, Pos.TOP_LEFT);
+        StackPane.setMargin(topLeftToolbar, new Insets(15));
+        topRightToolbar.setPrefSize(Control.USE_COMPUTED_SIZE, Control.USE_COMPUTED_SIZE);
+        topRightToolbar.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        topRightToolbar.setMaxSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        topRightToolbar.setStyle("-fx-background-color: transparent");
+        topRightToolbar.setOrientation(Orientation.VERTICAL);
+        StackPane.setAlignment(topRightToolbar, Pos.TOP_RIGHT);
+        StackPane.setMargin(topRightToolbar, new Insets(15));
 
-        contentPane.getChildren().addAll(bottomRightToolbar);
+        contentPane.getChildren().addAll(bottomRightToolbar, bottomLeftToolbar, topLeftToolbar, topRightToolbar);
     }
 
     private void initEagleMap() {
         eagleMapView = new MapView();
-        eagleMapView.setMaxSize(300, 200);
+        eagleMapView.setPrefSize(300, 200);
         eagleMap = new ArcGISMap(Basemap.createStreets());
         eagleMapView.setEnableMousePan(false);
         eagleMapView.setEnableMouseZoom(false);
@@ -340,9 +367,7 @@ public class AppView {
         eagleMapView.setEnableTouchRotate(false);
         eagleMapView.setEnableTouchZoom(false);
         eagleMapView.setMap(eagleMap);
-        StackPane.setMargin(eagleMapView, new Insets(30, 15, 15, 15));
-        StackPane.setAlignment(eagleMapView, Pos.TOP_RIGHT);
-        contentPane.getChildren().add(eagleMapView);
+        topRightToolbar.getItems().add(eagleMapView);
 
         GraphicsOverlay extentGraphicOverlay = new GraphicsOverlay();
         eagleMapView.getGraphicsOverlays().add(extentGraphicOverlay);
@@ -362,9 +387,7 @@ public class AppView {
     private void initRefreshButton() {
         refreshButton = new Button("Refresh Basemap");
         refreshButton.setOnAction(actionEvent -> mainMap.loadAsync());
-        StackPane.setAlignment(refreshButton, Pos.TOP_LEFT);
-        StackPane.setMargin(refreshButton, new Insets(15));
-        contentPane.getChildren().add(refreshButton);
+        topLeftToolbar.getItems().add(refreshButton);
     }
 
     private void initBasemapSelector() {
@@ -389,9 +412,7 @@ public class AppView {
         });
         basemapChoiceBox.setValue(Basemap.Type.IMAGERY);
 
-        StackPane.setAlignment(basemapChoiceBox, Pos.TOP_RIGHT);
-        StackPane.setMargin(basemapChoiceBox, new Insets(250, 15, 15, 15));
-        contentPane.getChildren().add(basemapChoiceBox);
+        topRightToolbar.getItems().add(basemapChoiceBox);
     }
 
     private void changeBasemapByType(Basemap.Type type) {
@@ -470,9 +491,7 @@ public class AppView {
 
     private void initOnlineDataButton() {
         onlineDataURLText = new TextField();
-        onlineDataURLText.setMaxWidth(400);
-        StackPane.setAlignment(onlineDataURLText, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(onlineDataURLText, new Insets(15, 15, 15, 150));
+        onlineDataURLText.setPrefWidth(200);
 
         onlineDataTypeChoiceBox = new ChoiceBox<>();
         onlineDataTypeChoiceBox.setMinWidth(100);
@@ -489,16 +508,12 @@ public class AppView {
             }
         });
         onlineDataTypeChoiceBox.getSelectionModel().select(OnlineDataType.ESRI_SERVICE);
-        StackPane.setAlignment(onlineDataTypeChoiceBox, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(onlineDataTypeChoiceBox, new Insets(15, 15, 15, 560));
 
         loadOnlineDataBtn = new Button();
         loadOnlineDataBtn.setText("load online data");
         loadOnlineDataBtn.setOnMouseClicked(mouseEvent -> controller.loadOnlineData(mainMapView, onlineDataURLText.getText(), onlineDataTypeChoiceBox.getSelectionModel().getSelectedItem()));
-        StackPane.setAlignment(loadOnlineDataBtn, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(loadOnlineDataBtn, new Insets(15));
 
-        contentPane.getChildren().addAll(loadOnlineDataBtn, onlineDataURLText, onlineDataTypeChoiceBox);
+        bottomLeftToolbar.getItems().addAll(loadOnlineDataBtn, onlineDataURLText, onlineDataTypeChoiceBox);
     }
 
     private void initRasterButton() {
