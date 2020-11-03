@@ -113,14 +113,7 @@ public class AppView {
             primaryStage.setMinHeight(primaryStage.getHeight());
             primaryStage.setMinWidth(primaryStage.getWidth());
         });
-        primaryStage.setOnCloseRequest(windowEvent -> {
-            if (Objects.nonNull(simpleQueryStage)) {
-                simpleQueryStage.close();
-            }
-            if (Objects.nonNull(clickQueryStage)) {
-                clickQueryStage.close();
-            }
-        });
+        primaryStage.setOnCloseRequest(windowEvent -> dispose());
 
         mainPane = new GridPane();
         mainPane.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -574,6 +567,15 @@ public class AppView {
     }
 
     public void dispose() {
+        if (Objects.nonNull(simpleQueryStage)) {
+            simpleQueryStage.close();
+        }
+        if (Objects.nonNull(clickQueryStage)) {
+            clickQueryStage.close();
+        }
+        if (Objects.nonNull(eagleMapView)) {
+            eagleMapView.dispose();
+        }
         if (Objects.nonNull(mainMapView)) {
             mainMapView.dispose();
         }

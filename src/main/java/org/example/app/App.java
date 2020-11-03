@@ -17,23 +17,12 @@ public class App extends Application {
         }
     }
 
-    private AppView appView;
-
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
     public void start(Stage primaryStage) {
-        appView = new AppView();
-        appView.start(primaryStage);
-    }
-
-    @Override
-    public void stop() throws Exception {
-        super.stop();
-        if (Objects.nonNull(appView)) {
-            appView.dispose();
-        }
+        new AppView().start(primaryStage);
     }
 }
