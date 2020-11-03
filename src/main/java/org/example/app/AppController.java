@@ -5,12 +5,14 @@ import com.esri.arcgisruntime.data.*;
 import com.esri.arcgisruntime.geometry.*;
 import com.esri.arcgisruntime.internal.util.StringUtil;
 import com.esri.arcgisruntime.layers.FeatureLayer;
+import com.esri.arcgisruntime.layers.RasterLayer;
 import com.esri.arcgisruntime.layers.WmsLayer;
 import com.esri.arcgisruntime.loadable.LoadStatus;
 import com.esri.arcgisruntime.mapping.GeoElement;
 import com.esri.arcgisruntime.mapping.view.Callout;
 import com.esri.arcgisruntime.mapping.view.IdentifyLayerResult;
 import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.raster.Raster;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
@@ -52,6 +54,20 @@ public class AppController {
                     FeatureLayer featureLayer = new FeatureLayer(geodatabaseFeatureTable);
                     parentMapView.getMap().getOperationalLayers().add(featureLayer);
                     featureLayer.addDoneLoadingListener(() -> parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent()));
+                }
+            });
+        }
+    }
+
+    public void loadRaster(@Nullable Window parentWindow, @NotNull MapView parentMapView) {
+        File file = selectSingleFile(parentWindow, "Select Raster", new FileChooser.ExtensionFilter("GeoTiff format file", "*.tif", "*.tiff"));
+        if (Objects.nonNull(file)) {
+            Raster raster = new Raster(file.getAbsolutePath());
+            RasterLayer rasterLayer = new RasterLayer(raster);
+            parentMapView.getMap().getOperationalLayers().add(rasterLayer);
+            rasterLayer.addDoneLoadingListener(() -> {
+                if (rasterLayer.getLoadStatus() == LoadStatus.LOADED) {
+                    parentMapView.setViewpointGeometryAsync(rasterLayer.getFullExtent(), 50);
                 }
             });
         }

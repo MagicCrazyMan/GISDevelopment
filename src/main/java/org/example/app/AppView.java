@@ -45,6 +45,7 @@ public class AppView {
     Button loadShapefileBtn;
     Button loadGeoDatabaseBtn;
     Button loadOnlineDataBtn;
+    Button loadRasterBtn;
     ChoiceBox<OnlineDataType> onlineDataTypeChoiceBox;
     TextField onlineDataURLText;
     ChoiceBox<Basemap.Type> basemapChoiceBox;
@@ -84,6 +85,7 @@ public class AppView {
         initShapefileButton();
         initGeoDatabaseButton();
         initOnlineDataButton();
+        initRasterButton();
         initBasemapSelector();
         initCallOutButton();
         initMapViewClicker();
@@ -420,6 +422,12 @@ public class AppView {
         StackPane.setMargin(loadOnlineDataBtn, new Insets(15));
 
         contentPane.getChildren().addAll(loadOnlineDataBtn, onlineDataURLText, onlineDataTypeChoiceBox);
+    }
+
+    private void initRasterButton() {
+        loadRasterBtn = new Button("Load Raster");
+        loadRasterBtn.setOnAction(actionEvent -> controller.loadRaster(primaryStage, mainMapView));
+        bottomRightToolbar.getItems().add(loadRasterBtn);
     }
 
     private void initCallOutButton() {
