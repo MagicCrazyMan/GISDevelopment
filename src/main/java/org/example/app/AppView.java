@@ -64,9 +64,6 @@ public class AppView {
     ChoiceBox<OnlineDataType> onlineDataTypeChoiceBox;
     TextField onlineDataURLText;
     ChoiceBox<Basemap.Type> basemapChoiceBox;
-    Button callOutBtn;
-    TextField longitudeText;
-    TextField latitudeText;
     ToolBar bottomRightToolbar;
 
     MapView mainMapView;
@@ -102,7 +99,6 @@ public class AppView {
         initOnlineDataButton();
         initRasterButton();
         initBasemapSelector();
-        initCallOutButton();
         initMapViewClicker();
         primaryStage.show();
     }
@@ -509,22 +505,6 @@ public class AppView {
         loadRasterBtn = new Button("Load Raster");
         loadRasterBtn.setOnAction(actionEvent -> controller.loadRaster(primaryStage, mainMapView));
         bottomRightToolbar.getItems().add(loadRasterBtn);
-    }
-
-    private void initCallOutButton() {
-        callOutBtn = new Button("Show Call Out At Position");
-        longitudeText = new TextField();
-        latitudeText = new TextField();
-        longitudeText.setMaxWidth(100);
-        latitudeText.setMaxWidth(100);
-        callOutBtn.setOnMouseClicked(mouseEvent -> controller.showCallOut(mainMapView, longitudeText.getText(), latitudeText.getText()));
-        StackPane.setAlignment(callOutBtn, Pos.BOTTOM_LEFT);
-        StackPane.setAlignment(longitudeText, Pos.BOTTOM_LEFT);
-        StackPane.setAlignment(latitudeText, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(callOutBtn, new Insets(15, 15, 50, 15));
-        StackPane.setMargin(longitudeText, new Insets(15, 15, 50, 210));
-        StackPane.setMargin(latitudeText, new Insets(15, 15, 50, 315));
-        contentPane.getChildren().addAll(callOutBtn, longitudeText, latitudeText);
     }
 
     boolean isDragging = false;
