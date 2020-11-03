@@ -7,12 +7,15 @@ import com.esri.arcgisruntime.internal.util.StringUtil;
 import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.layers.WmsLayer;
 import com.esri.arcgisruntime.loadable.LoadStatus;
+import com.esri.arcgisruntime.mapping.GeoElement;
 import com.esri.arcgisruntime.mapping.view.Callout;
+import com.esri.arcgisruntime.mapping.view.IdentifyLayerResult;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import com.esri.arcgisruntime.symbology.SimpleRenderer;
+import javafx.geometry.Point2D;
 import javafx.scene.control.Alert;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
@@ -192,6 +195,39 @@ public class AppController {
                 e.printStackTrace();
             }
         });
+    }
+
+    public void clickQuery(@NotNull MapView parentView, @NotNull FeatureLayer featureLayer, @NotNull Point2D point) {
+        final double error = 3; // set error
+        ListenableFuture<IdentifyLayerResult> results = parentView.identifyLayerAsync(featureLayer, point, error, false);
+        results.addDoneListener(() -> {
+            try {
+                System.out.println(results.get().getElements().size());
+                if (!results.get().getElements().isEmpty()) {
+                    GeoElement geoElement = results.get().getElements().get(0); // only the first element is needed
+                    clickQueryFeaturesProcess(featureLayer, geoElement.getAttributes());
+                    parentView.setViewpointGeometryAsync(geoElement.getGeometry(), 50);
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void clickQueryFeaturesProcess(@NotNull FeatureLayer featureLayer, @NotNull Map<String, Object> attributes) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
+            stringBuilder.append(attribute.getKey()).append(": ").append(attribute.getValue()).append(System.lineSeparator());
+        }
+
+        // show message box
+        if (!stringBuilder.toString().isEmpty()) {
+            Alert messageBox = new Alert(Alert.AlertType.INFORMATION);
+            messageBox.setTitle(featureLayer.getName() + " fields information");
+            messageBox.setContentText(stringBuilder.toString());
+            messageBox.setResizable(false);
+            messageBox.showAndWait();
+        }
     }
 
     private File selectSingleFile(@Nullable Window parentWindow, @NotNull String title, @Nullable FileChooser.ExtensionFilter... extensionFilter) {

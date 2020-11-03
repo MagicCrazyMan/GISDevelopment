@@ -142,7 +142,6 @@ public class AppView {
         queryMenu = new Menu("Query");
         MenuItem simpleQuery = new MenuItem("Simple Query");
         MenuItem clickQuery = new MenuItem("Click Query");
-        MenuItem identifyQuery = new MenuItem("Identify Query");
         simpleQuery.setOnAction(actionEvent -> {
             if (Objects.isNull(simpleQueryStage)) {
                 StackPane simpleQueryPane = new StackPane();
@@ -209,7 +208,7 @@ public class AppView {
                 clickQueryStage.toFront();
             }
         });
-        queryMenu.getItems().addAll(simpleQuery, clickQuery, identifyQuery);
+        queryMenu.getItems().addAll(simpleQuery, clickQuery);
 
         menuBar.getMenus().addAll(fileMenu, operationMenu, queryMenu);
         StackPane.setAlignment(menuBar, Pos.TOP_LEFT);
@@ -430,19 +429,21 @@ public class AppView {
         mainMapView.setOnDragDetected(mouseEvent -> isDragging = true);
         mainMapView.setOnMouseClicked(mouseEvent -> {
             if (!isDragging) {
-                Point point = mainMapView.screenToLocation(new Point2D(mouseEvent.getX(), mouseEvent.getY()));
-                if (Objects.nonNull(point)) {
+                Point2D screenPoint = new Point2D(mouseEvent.getX(), mouseEvent.getY());
+                Point mapPoint = mainMapView.screenToLocation(screenPoint);
+                if (Objects.nonNull(mapPoint)) {
                     if (mainMap.getOperationalLayers().size() > 0)
                         switch (clickQueryType) {
-                            case IDENTITY:{
+                            case IDENTITY: {
+                                controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), screenPoint);
                                 break;
                             }
-                            case SELECTED_FEATURE:{
-                                controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), point);
+                            case SELECTED_FEATURE: {
+                                controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), mapPoint);
                                 break;
                             }
                         }
-                    controller.showCallOut(mainMapView, point);
+                    controller.showCallOut(mainMapView, mapPoint);
                 }
             } else {
                 isDragging = false;
