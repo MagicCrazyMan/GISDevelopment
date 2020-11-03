@@ -55,6 +55,14 @@ public class AppView {
     MapView eagleMapView;
 
     Stage simpleQueryStage;
+    Stage clickQueryStage;
+    ClickQueryType clickQueryType = ClickQueryType.NULL;
+
+    private enum ClickQueryType {
+        NULL,
+        SELECTED_FEATURE,
+        IDENTITY
+    }
 
     private final AppController controller = new AppController();
 
@@ -133,6 +141,7 @@ public class AppView {
 
         queryMenu = new Menu("Query");
         MenuItem simpleQuery = new MenuItem("Simple Query");
+        MenuItem clickQuery = new MenuItem("Click Query");
         MenuItem identifyQuery = new MenuItem("Identify Query");
         simpleQuery.setOnAction(actionEvent -> {
             if (Objects.isNull(simpleQueryStage)) {
@@ -168,7 +177,39 @@ public class AppView {
                 simpleQueryStage.toFront();
             }
         });
-        queryMenu.getItems().addAll(simpleQuery, identifyQuery);
+        clickQuery.setOnAction(actionEvent -> {
+            if (Objects.isNull(clickQueryStage)) {
+                StackPane stackPane = new StackPane();
+                ToolBar toolBar = new ToolBar();
+                RadioButton selectFeatureBtn = new RadioButton("Select Feature");
+                RadioButton identityBtn = new RadioButton("Identity");
+                clickQueryType = ClickQueryType.SELECTED_FEATURE;
+                selectFeatureBtn.setSelected(true); // select feature is default
+                selectFeatureBtn.setOnAction(actionEvent1 -> {
+                    identityBtn.setSelected(false);
+                    clickQueryType = ClickQueryType.SELECTED_FEATURE;
+                });
+                identityBtn.setOnAction(actionEvent1 -> {
+                    selectFeatureBtn.setSelected(false);
+                    clickQueryType = ClickQueryType.IDENTITY;
+                });
+                toolBar.getItems().addAll(selectFeatureBtn, identityBtn);
+                stackPane.getChildren().add(toolBar);
+
+                clickQueryStage = new Stage();
+                clickQueryStage.setScene(new Scene(stackPane));
+                clickQueryStage.setResizable(false);
+                clickQueryStage.setTitle("Click Query");
+                clickQueryStage.setOnCloseRequest(windowEvent -> {
+                    clickQueryStage = null;
+                    clickQueryType = ClickQueryType.NULL;
+                });
+                clickQueryStage.show();
+            } else {
+                clickQueryStage.toFront();
+            }
+        });
+        queryMenu.getItems().addAll(simpleQuery, clickQuery, identifyQuery);
 
         menuBar.getMenus().addAll(fileMenu, operationMenu, queryMenu);
         StackPane.setAlignment(menuBar, Pos.TOP_LEFT);
@@ -392,7 +433,15 @@ public class AppView {
                 Point point = mainMapView.screenToLocation(new Point2D(mouseEvent.getX(), mouseEvent.getY()));
                 if (Objects.nonNull(point)) {
                     if (mainMap.getOperationalLayers().size() > 0)
-                        controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), point);
+                        switch (clickQueryType) {
+                            case IDENTITY:{
+                                break;
+                            }
+                            case SELECTED_FEATURE:{
+                                controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), point);
+                                break;
+                            }
+                        }
                     controller.showCallOut(mainMapView, point);
                 }
             } else {
