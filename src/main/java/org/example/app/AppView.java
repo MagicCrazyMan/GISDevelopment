@@ -20,6 +20,7 @@ import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
 import java.util.Objects;
+import java.util.Stack;
 
 public class AppView {
 
@@ -50,6 +51,7 @@ public class AppView {
     Button callOutBtn;
     TextField longitudeText;
     TextField latitudeText;
+    ToolBar bottomRightToolbar;
 
     MapView mainMapView;
     MapView eagleMapView;
@@ -75,6 +77,8 @@ public class AppView {
         initMainWindow();
         initMenuBar();
         initMapView();
+        initLayersManager();
+        initToolbars();
         initRefreshButton();
         initEagleMap();
         initShapefileButton();
@@ -231,6 +235,22 @@ public class AppView {
         contentPane.getChildren().add(mainMapView);
     }
 
+    private void initLayersManager() {
+
+    }
+
+    private void initToolbars() {
+        bottomRightToolbar = new ToolBar();
+        bottomRightToolbar.setPrefSize(Control.USE_COMPUTED_SIZE, Control.USE_COMPUTED_SIZE);
+        bottomRightToolbar.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        bottomRightToolbar.setMaxSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        bottomRightToolbar.setStyle("-fx-background-color: transparent");
+        StackPane.setAlignment(bottomRightToolbar, Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(bottomRightToolbar, new Insets(15));
+
+        contentPane.getChildren().addAll(bottomRightToolbar);
+    }
+
     private void initEagleMap() {
         eagleMapView = new MapView();
         eagleMapView.setMaxSize(300, 200);
@@ -359,19 +379,14 @@ public class AppView {
         loadShapefileBtn.setText("Load Shapefile");
         loadShapefileBtn.setDefaultButton(true);
         loadShapefileBtn.setOnMouseClicked(mouseEvent -> controller.loadShapefile(primaryStage, mainMapView));
-        StackPane.setAlignment(loadShapefileBtn, Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(loadShapefileBtn, new Insets(15));
-//        mainPane.getChildren().add(loadShapefileBtn);
-        contentPane.getChildren().add(loadShapefileBtn);
+        bottomRightToolbar.getItems().add(loadShapefileBtn);
     }
 
     private void initGeoDatabaseButton() {
         loadGeoDatabaseBtn = new Button();
         loadGeoDatabaseBtn.setText("Load GeoDatabase");
         loadGeoDatabaseBtn.setOnMouseClicked(mouseEvent -> controller.loadGeoDatabase(primaryStage, mainMapView));
-        StackPane.setAlignment(loadGeoDatabaseBtn, Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(loadGeoDatabaseBtn, new Insets(15, 130, 15, 15));
-        contentPane.getChildren().add(loadGeoDatabaseBtn);
+        bottomRightToolbar.getItems().add(loadGeoDatabaseBtn);
     }
 
     private void initOnlineDataButton() {
