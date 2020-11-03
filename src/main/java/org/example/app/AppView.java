@@ -3,6 +3,8 @@ package org.example.app;
 import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.layers.FeatureLayer;
+import com.esri.arcgisruntime.layers.Layer;
+import com.esri.arcgisruntime.loadable.LoadStatus;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.LayerList;
@@ -10,14 +12,21 @@ import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.*;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
+import com.esri.arcgisruntime.util.ListChangedEvent;
+import com.esri.arcgisruntime.util.ListChangedListener;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.Stack;
@@ -248,6 +257,44 @@ public class AppView {
         mainMap = new ArcGISMap(Basemap.createImagery());
         StackPane.setAlignment(mainMapView, Pos.TOP_LEFT);
         mainMapView.setMap(mainMap);
+
+        // add listener, any layer changed will notify layer manager
+        mainMap.getOperationalLayers().addListChangedListener(listChangedEvent -> {
+            if (Objects.nonNull(layerPane)) {
+                switch (listChangedEvent.getAction()) {
+                    case ADDED: {
+                        Layer layer = listChangedEvent.getItems().get(0);
+                        layer.addDoneLoadingListener(() -> {
+                            if (layer.getLoadStatus().equals(LoadStatus.LOADED)) {
+                                String name = layer.getName();
+                                String id = layer.getId();
+                                RadioButton radioButton = new RadioButton(name);
+                                radioButton.setId(id);
+                                radioButton.setSelected(true);
+                                radioButton.selectedProperty().addListener((observableValue, aBoolean, t1) -> layer.setVisible(t1));
+                                radioButton.setOnContextMenuRequested(contextMenuEvent -> {
+                                    ContextMenu contextMenu = new ContextMenu();
+                                    MenuItem zoomTo = new MenuItem("Zoom To");
+                                    MenuItem remove = new MenuItem("Remove");
+                                    zoomTo.setOnAction(actionEvent -> mainMapView.setViewpointGeometryAsync(layer.getFullExtent(), 50));
+                                    remove.setOnAction(actionEvent -> mainMap.getOperationalLayers().remove(layer));
+
+                                    contextMenu.getItems().addAll(zoomTo, remove);
+                                    contextMenu.show(radioButton, contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
+                                });
+                                layerPane.getChildren().add(radioButton);
+                            }
+                        });
+                        break;
+                    }
+                    case REMOVED: {
+                        Layer layer = listChangedEvent.getItems().get(0);
+                        layerPane.getChildren().removeIf(node -> node.getId().equals(layer.getId()));
+                        break;
+                    }
+                }
+            }
+        });
 
         contentPane.getChildren().add(mainMapView);
     }
