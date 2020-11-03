@@ -164,6 +164,8 @@ public class AppView {
                 simpleQueryStage.setScene(new Scene(simpleQueryPane));
                 simpleQueryStage.setOnCloseRequest(windowEvent -> simpleQueryStage = null);
                 simpleQueryStage.show();
+            } else {
+                simpleQueryStage.toFront();
             }
         });
         queryMenu.getItems().addAll(simpleQuery, identifyQuery);
