@@ -53,7 +53,7 @@ public class AppView {
     Menu queryMenu;
     GridPane mainPane;
     StackPane contentPane;
-    VBox layerPane;
+    ListView<RadioButton> layerPane;
     ArcGISMap mainMap;
     ArcGISMap eagleMap;
     Button refreshButton;
@@ -246,11 +246,9 @@ public class AppView {
         columnConstraints.setMaxWidth(200);
         mainPane.getColumnConstraints().add(0, columnConstraints);
 
-        ScrollPane scrollPane = new ScrollPane();
-        layerPane = new VBox();
-        layerPane.setSpacing(15);
-        layerPane.setPadding(new Insets(5));
-        scrollPane.setOnDragOver(dragEvent -> {
+        layerPane = new ListView<>();
+        layerPane.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        layerPane.setOnDragOver(dragEvent -> {
             Dragboard db = dragEvent.getDragboard();
             if (db.hasFiles()) {
                 dragEvent.acceptTransferModes(TransferMode.COPY);
@@ -258,7 +256,7 @@ public class AppView {
                 dragEvent.consume();
             }
         });
-        scrollPane.setOnDragDropped(dragEvent -> {
+        layerPane.setOnDragDropped(dragEvent -> {
             Dragboard db = dragEvent.getDragboard();
             if (db.hasFiles() && db.getFiles().size() > 0) {
                 for (File file : db.getFiles()) {
@@ -266,8 +264,7 @@ public class AppView {
                 }
             }
         });
-        scrollPane.setContent(layerPane);
-        mainPane.add(scrollPane, 0, 1);
+        mainPane.add(layerPane, 0, 1);
     }
 
     private void initMapView() {
@@ -306,14 +303,14 @@ public class AppView {
                                     contextMenu.getItems().addAll(zoomTo, remove);
                                     contextMenu.show(radioButton, contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
                                 });
-                                layerPane.getChildren().add(radioButton);
+                                layerPane.getItems().add(radioButton);
                             }
                         });
                         break;
                     }
                     case REMOVED: {
                         Layer layer = listChangedEvent.getItems().get(0);
-                        layerPane.getChildren().removeIf(node -> node.getId().equals(layer.getId()));
+                        layerPane.getItems().removeIf(node -> node.getId().equals(layer.getId()));
                         break;
                     }
                 }
@@ -537,23 +534,46 @@ public class AppView {
                 Point2D screenPoint = new Point2D(mouseEvent.getX(), mouseEvent.getY());
                 Point mapPoint = mainMapView.screenToLocation(screenPoint);
                 if (Objects.nonNull(mapPoint)) {
-                    if (mainMap.getOperationalLayers().size() > 0)
-                        switch (clickQueryType) {
-                            case IDENTITY: {
-                                controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), screenPoint);
-                                break;
+                    if (clickQueryType == ClickQueryType.NULL) {
+                        controller.showCallOut(mainMapView, mapPoint);
+                    } else {
+                        if (layerPane.getSelectionModel().getSelectedIndex() != -1) {
+                            Layer layer = findLayerById(layerPane.getSelectionModel().getSelectedItem().getId());
+                            if (layer instanceof FeatureLayer) {
+                                switch (clickQueryType) {
+                                    case IDENTITY: {
+                                        controller.clickQuery(mainMapView, (FeatureLayer) layer, screenPoint);
+                                        break;
+                                    }
+                                    case SELECTED_FEATURE: {
+                                        controller.clickQuery(mainMapView, (FeatureLayer) layer, mapPoint);
+                                        break;
+                                    }
+                                }
                             }
-                            case SELECTED_FEATURE: {
-                                controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), mapPoint);
-                                break;
-                            }
+                        } else {
+                            Alert alert = new Alert(Alert.AlertType.WARNING);
+                            alert.setTitle("No Selected Layer");
+                            alert.setContentText("Please select a layer first from Layer Manager on the left");
+                            alert.showAndWait();
                         }
-                    controller.showCallOut(mainMapView, mapPoint);
+                    }
                 }
             } else {
                 isDragging = false;
             }
         });
+    }
+
+    private Layer findLayerById(@NotNull String id) {
+        if (Objects.nonNull(mainMap)) {
+            for (Layer layer : mainMap.getOperationalLayers()) {
+                if (layer.getId().equals(id)) {
+                    return layer;
+                }
+            }
+        }
+        return null;
     }
 
     public void dispose() {

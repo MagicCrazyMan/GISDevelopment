@@ -220,7 +220,7 @@ public class AppController {
         ListenableFuture<FeatureQueryResult> results = featureLayer.selectFeaturesAsync(queryParameters, FeatureLayer.SelectionMode.NEW);
         results.addDoneListener(() -> {
             try {
-                EnvelopeBuilder envelopeBuilder = new EnvelopeBuilder(parentView.getSpatialReference());
+                EnvelopeBuilder envelopeBuilder = new EnvelopeBuilder(results.get().getSpatialReference());
                 results.get().iterator().forEachRemaining(feature -> {
                     envelopeBuilder.unionOf(feature.getGeometry().getExtent());
                     // iterate all features and get all fields and its values
