@@ -10,14 +10,12 @@ public class App extends Application {
 
     static {
         String os = System.getProperty("os.name").toLowerCase();
-        if (os.equals("linux")) {
+        if (os.startsWith("linux")) {
             ArcGISRuntimeEnvironment.setInstallDirectory("/home/magiccrayman/Downloads/arcgis-runtime-sdk-java-100.9.0");
-        } else if (os.equals("windows")) {
+        } else if (os.startsWith("windows")) {
             ArcGISRuntimeEnvironment.setInstallDirectory("D:\\Data\\Learning\\ArcGISRuntimesSDK\\arcgis-runtime-sdk-java-100.9.0");
         }
     }
-
-    private AppView appView;
 
     public static void main(String[] args) {
         launch(args);
@@ -25,15 +23,6 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        appView = new AppView();
-        appView.start(primaryStage);
-    }
-
-    @Override
-    public void stop() throws Exception {
-        super.stop();
-        if (Objects.nonNull(appView)) {
-            appView.dispose();
-        }
+        new AppView().start(primaryStage);
     }
 }

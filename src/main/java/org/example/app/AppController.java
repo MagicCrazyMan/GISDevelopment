@@ -27,54 +27,76 @@ import java.util.concurrent.ExecutionException;
 
 public class AppController {
 
-    public void loadShapefile(@Nullable Window parentWindow, @NotNull MapView parentMapView, @Nullable File file) {
-        if (Objects.isNull(file)) {
-            file = selectSingleFile(parentWindow, "Select shapefile", new FileChooser.ExtensionFilter("Shapefile format filed (.shp)", "*.shp"));
+    public void routeLoadFile(@NotNull MapView parentMapView, @NotNull File file) {
+        String filename = file.getName().toLowerCase();
+        if (filename.endsWith(".shp")) {
+            loadShapefile(parentMapView, file);
+        } else if (filename.endsWith(".geodatabase")) {
+            loadGeoDatabase(parentMapView, file);
+        } else if (filename.endsWith(".tif") || filename.endsWith(".tiff")) {
+            loadRaster(parentMapView, file);
         }
+    }
+
+    public void loadShapefile(@NotNull MapView parentMapView, @NotNull File file) {
+        ShapefileFeatureTable shapefileFeatureTable = new ShapefileFeatureTable(file.getAbsolutePath());
+        FeatureLayer featureLayer = new FeatureLayer(shapefileFeatureTable);
+        featureLayer.setName(file.getName());
+        featureLayer.setId(file.getAbsolutePath());
+        // ATTENTION! setViewpoint by shapefile extent may has no effect when shapefile haven't done loading
+        // difference from C# SDK, ShapefileFeatureTable doesn't have async method to load
+        // so, in Java, we have to add a DoneLoadingListener to capture the done loading event, and set viewpoint after finishing loading
+        featureLayer.addDoneLoadingListener(() -> parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent(), 50));
+        parentMapView.getMap().getOperationalLayers().add(featureLayer);
+    }
+
+    public void loadShapefile(@Nullable Window parentWindow, @NotNull MapView parentMapView) {
+        File file = selectSingleFile(parentWindow, "Select shapefile", new FileChooser.ExtensionFilter("Shapefile format filed (.shp)", "*.shp"));
+
         if (Objects.nonNull(file)) {
-            ShapefileFeatureTable shapefileFeatureTable = new ShapefileFeatureTable(file.getAbsolutePath());
-            FeatureLayer featureLayer = new FeatureLayer(shapefileFeatureTable);
-            featureLayer.setName(file.getName());
-            featureLayer.setId(file.getAbsolutePath());
-            // ATTENTION! setViewpoint by shapefile extent may has no effect when shapefile haven't done loading
-            // difference from C# SDK, ShapefileFeatureTable doesn't have async method to load
-            // so, in Java, we have to add a DoneLoadingListener to capture the done loading event, and set viewpoint after finishing loading
-            featureLayer.addDoneLoadingListener(() -> parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent()));
-            parentMapView.getMap().getOperationalLayers().add(featureLayer);
+            loadShapefile(parentMapView, file);
         }
+    }
+
+    public void loadGeoDatabase(@NotNull MapView parentMapView, @NotNull File file) {
+        Geodatabase geodatabase = new Geodatabase(file.getAbsolutePath());
+        geodatabase.loadAsync();
+        geodatabase.addDoneLoadingListener(() -> {
+            List<GeodatabaseFeatureTable> list = geodatabase.getGeodatabaseFeatureTables();
+            for (GeodatabaseFeatureTable geodatabaseFeatureTable : list) {
+                FeatureLayer featureLayer = new FeatureLayer(geodatabaseFeatureTable);
+                featureLayer.setName(geodatabaseFeatureTable.getDisplayName());
+                featureLayer.setId(geodatabaseFeatureTable.getTableName());
+                parentMapView.getMap().getOperationalLayers().add(featureLayer);
+                featureLayer.addDoneLoadingListener(() -> parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent(), 50));
+            }
+        });
     }
 
     public void loadGeoDatabase(@Nullable Window parentWindow, @NotNull MapView parentMapView) {
         File file = selectSingleFile(parentWindow, "Select GeoDatabase", new FileChooser.ExtensionFilter("eSRI GeoDatabase (.geodatabase)", "*.geodatabase"));
         if (Objects.nonNull(file)) {
-            Geodatabase geodatabase = new Geodatabase(file.getAbsolutePath());
-            geodatabase.loadAsync();
-            geodatabase.addDoneLoadingListener(() -> {
-                List<GeodatabaseFeatureTable> list = geodatabase.getGeodatabaseFeatureTables();
-                for (GeodatabaseFeatureTable geodatabaseFeatureTable : list) {
-                    FeatureLayer featureLayer = new FeatureLayer(geodatabaseFeatureTable);
-                    featureLayer.setName(geodatabaseFeatureTable.getDisplayName());
-                    featureLayer.setId(geodatabaseFeatureTable.getTableName());
-                    parentMapView.getMap().getOperationalLayers().add(featureLayer);
-                    featureLayer.addDoneLoadingListener(() -> parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent()));
-                }
-            });
+            loadGeoDatabase(parentMapView, file);
         }
+    }
+
+    public void loadRaster(@NotNull MapView parentMapView, @NotNull File file) {
+        Raster raster = new Raster(file.getAbsolutePath());
+        RasterLayer rasterLayer = new RasterLayer(raster);
+        rasterLayer.setName(file.getName());
+        rasterLayer.setId(file.getAbsolutePath());
+        parentMapView.getMap().getOperationalLayers().add(rasterLayer);
+        rasterLayer.addDoneLoadingListener(() -> {
+            if (rasterLayer.getLoadStatus() == LoadStatus.LOADED) {
+                parentMapView.setViewpointGeometryAsync(rasterLayer.getFullExtent(), 50);
+            }
+        });
     }
 
     public void loadRaster(@Nullable Window parentWindow, @NotNull MapView parentMapView) {
         File file = selectSingleFile(parentWindow, "Select Raster", new FileChooser.ExtensionFilter("GeoTiff format file", "*.tif", "*.tiff"));
         if (Objects.nonNull(file)) {
-            Raster raster = new Raster(file.getAbsolutePath());
-            RasterLayer rasterLayer = new RasterLayer(raster);
-            rasterLayer.setName(file.getName());
-            rasterLayer.setId(file.getAbsolutePath());
-            parentMapView.getMap().getOperationalLayers().add(rasterLayer);
-            rasterLayer.addDoneLoadingListener(() -> {
-                if (rasterLayer.getLoadStatus() == LoadStatus.LOADED) {
-                    parentMapView.setViewpointGeometryAsync(rasterLayer.getFullExtent(), 50);
-                }
-            });
+            loadRaster(parentMapView, file);
         }
     }
 
@@ -89,7 +111,7 @@ public class AppController {
                 WmsLayer wmsLayer = new WmsLayer(url, names);
                 wmsLayer.addDoneLoadingListener(() -> {
                     if (wmsLayer.getLoadStatus() == LoadStatus.LOADED) {
-                        parentMapView.setViewpointGeometryAsync(wmsLayer.getFullExtent());
+                        parentMapView.setViewpointGeometryAsync(wmsLayer.getFullExtent(), 50);
                     } else if (wmsLayer.getLoadStatus() == LoadStatus.FAILED_TO_LOAD) {
                         Alert alert = new Alert(Alert.AlertType.ERROR, "Failed to load WMS layer");
                         alert.setContentText(wmsLayer.getLoadError().getMessage());
@@ -110,7 +132,7 @@ public class AppController {
                         featureLayer.setMaxScale(0);
                         featureLayer.setMinScale(Double.MAX_VALUE);
                         featureLayer.setRenderer(getOnlineDataRenderer(featureLayer.getFeatureTable().getGeometryType()));
-                        parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent());
+                        parentMapView.setViewpointGeometryAsync(featureLayer.getFullExtent(), 50);
                     } else if (featureLayer.getLoadStatus() == LoadStatus.FAILED_TO_LOAD) {
                         Alert alert = new Alert(Alert.AlertType.ERROR, "Failed to load eSRI online data");
                         alert.setContentText(featureLayer.getLoadError().getMessage());
@@ -172,7 +194,7 @@ public class AppController {
             try {
                 EnvelopeBuilder envelopeBuilder = new EnvelopeBuilder(featureLayer.getSpatialReference());
                 results.get().iterator().forEachRemaining(feature -> envelopeBuilder.unionOf(feature.getGeometry().getExtent()));
-                parentMapView.setViewpointGeometryAsync(envelopeBuilder.toGeometry());
+                parentMapView.setViewpointGeometryAsync(envelopeBuilder.toGeometry(), 50);
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
@@ -195,7 +217,7 @@ public class AppController {
         ListenableFuture<FeatureQueryResult> results = featureLayer.selectFeaturesAsync(queryParameters, FeatureLayer.SelectionMode.NEW);
         results.addDoneListener(() -> {
             try {
-                EnvelopeBuilder envelopeBuilder = new EnvelopeBuilder(parentView.getSpatialReference());
+                EnvelopeBuilder envelopeBuilder = new EnvelopeBuilder(results.get().getSpatialReference());
                 results.get().iterator().forEachRemaining(feature -> {
                     envelopeBuilder.unionOf(feature.getGeometry().getExtent());
                     // iterate all features and get all fields and its values
@@ -284,12 +306,18 @@ public class AppController {
         }
     }
 
+    private File lastVisitedDir = null;
+
     private File selectSingleFile(@Nullable Window parentWindow, @NotNull String title, @Nullable FileChooser.ExtensionFilter... extensionFilter) {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        fileChooser.setInitialDirectory(Objects.isNull(lastVisitedDir) ? new File(System.getProperty("user.home")) : lastVisitedDir);
         fileChooser.getExtensionFilters().addAll(extensionFilter);
         fileChooser.setTitle(title);
-        return fileChooser.showOpenDialog(parentWindow);
+        File file = fileChooser.showOpenDialog(parentWindow);
+        if (Objects.nonNull(file)) {
+            lastVisitedDir = file.getParentFile();
+        }
+        return file;
     }
 }
 
