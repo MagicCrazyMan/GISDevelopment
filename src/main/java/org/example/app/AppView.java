@@ -12,31 +12,20 @@ import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.*;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
-import com.esri.arcgisruntime.util.ListChangedEvent;
-import com.esri.arcgisruntime.util.ListChangedListener;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import javafx.util.StringConverter;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Objects;
-import java.util.Stack;
+import java.util.*;
 
 public class AppView {
 
@@ -75,9 +64,13 @@ public class AppView {
     MapView mainMapView;
     MapView eagleMapView;
 
-    Stage simpleQueryStage;
-    Stage clickQueryStage;
-    Stage drawGeometryStage;
+    enum RuntimeStageType {
+        SIMPLE_QUERY,
+        CLICK_QUERY,
+        DRAW_GEOMETRY
+    }
+
+    Map<RuntimeStageType, Stage> runtimeStages = new HashMap<>();
     ClickQueryType clickQueryType = ClickQueryType.NULL;
 
     private enum ClickQueryType {
@@ -118,8 +111,8 @@ public class AppView {
             primaryStage.setMinWidth(primaryStage.getWidth());
         });
         primaryStage.setOnCloseRequest(windowEvent -> {
-            if (Objects.nonNull(simpleQueryStage)) {
-                simpleQueryStage.close();
+            for (Stage stage : runtimeStages.values()) {
+                stage.close();
             }
         });
 
@@ -168,7 +161,7 @@ public class AppView {
         MenuItem simpleQuery = new MenuItem("Simple Query");
         MenuItem clickQuery = new MenuItem("Click Query");
         simpleQuery.setOnAction(actionEvent -> {
-            if (Objects.isNull(simpleQueryStage)) {
+            if (!runtimeStages.containsKey(RuntimeStageType.SIMPLE_QUERY)) {
                 StackPane simpleQueryPane = new StackPane();
                 ToolBar toolBar = new ToolBar();
                 Label nameLabel = new Label("Field Name");
@@ -191,18 +184,19 @@ public class AppView {
                 toolBar.getItems().addAll(nameLabel, nameText, valueLabel, valueText, queryBtn);
                 simpleQueryPane.getChildren().add(toolBar);
 
-                simpleQueryStage = new Stage();
+                Stage simpleQueryStage = new Stage();
                 simpleQueryStage.setTitle("Simple Query");
                 simpleQueryStage.setResizable(false);
                 simpleQueryStage.setScene(new Scene(simpleQueryPane));
-                simpleQueryStage.setOnCloseRequest(windowEvent -> simpleQueryStage = null);
+                simpleQueryStage.setOnCloseRequest(windowEvent -> runtimeStages.remove(RuntimeStageType.SIMPLE_QUERY));
                 simpleQueryStage.show();
+                runtimeStages.put(RuntimeStageType.SIMPLE_QUERY, simpleQueryStage);
             } else {
-                simpleQueryStage.toFront();
+                runtimeStages.get(RuntimeStageType.SIMPLE_QUERY).toFront();
             }
         });
         clickQuery.setOnAction(actionEvent -> {
-            if (Objects.isNull(clickQueryStage)) {
+            if (!runtimeStages.containsKey(RuntimeStageType.CLICK_QUERY)) {
                 StackPane stackPane = new StackPane();
                 ToolBar toolBar = new ToolBar();
                 RadioButton selectFeatureBtn = new RadioButton("Select Feature");
@@ -220,17 +214,15 @@ public class AppView {
                 toolBar.getItems().addAll(selectFeatureBtn, identityBtn);
                 stackPane.getChildren().add(toolBar);
 
-                clickQueryStage = new Stage();
+                Stage clickQueryStage = new Stage();
                 clickQueryStage.setScene(new Scene(stackPane));
                 clickQueryStage.setResizable(false);
                 clickQueryStage.setTitle("Click Query");
-                clickQueryStage.setOnCloseRequest(windowEvent -> {
-                    clickQueryStage = null;
-                    clickQueryType = ClickQueryType.NULL;
-                });
+                clickQueryStage.setOnCloseRequest(windowEvent -> runtimeStages.remove(RuntimeStageType.CLICK_QUERY));
                 clickQueryStage.show();
+                runtimeStages.put(RuntimeStageType.CLICK_QUERY, clickQueryStage);
             } else {
-                clickQueryStage.toFront();
+                runtimeStages.get(RuntimeStageType.CLICK_QUERY).toFront();
             }
         });
         queryMenu.getItems().addAll(simpleQuery, clickQuery);
@@ -239,7 +231,7 @@ public class AppView {
         MenuItem drawGeometry = new MenuItem("Draw");
         drawGeometry.setOnAction(actionEvent -> {
             final String[] buttonString = new String[]{"Add Layer", "Draw Point", "Draw Line", "Draw Polygon", "Clear All", "Options"};
-            if (Objects.isNull(drawGeometryStage)) {
+            if (!runtimeStages.containsKey(RuntimeStageType.DRAW_GEOMETRY)) {
                 StackPane stackPane = new StackPane();
                 ToolBar toolBar = new ToolBar();
                 Button[] btns = new Button[buttonString.length];
@@ -253,17 +245,15 @@ public class AppView {
                 toolBar.getItems().addAll(btns);
                 stackPane.getChildren().add(toolBar);
 
-                drawGeometryStage = new Stage();
+                Stage drawGeometryStage = new Stage();
                 drawGeometryStage.setTitle("Draw");
                 drawGeometryStage.setResizable(false);
                 drawGeometryStage.setScene(new Scene(stackPane));
-                drawGeometryStage.setOnCloseRequest(windowEvent -> {
-                    drawGeometryStage.close();
-                    drawGeometryStage = null;
-                });
+                drawGeometryStage.setOnCloseRequest(windowEvent -> runtimeStages.remove(RuntimeStageType.CLICK_QUERY));
                 drawGeometryStage.show();
+                runtimeStages.put(RuntimeStageType.DRAW_GEOMETRY, drawGeometryStage);
             } else {
-                drawGeometryStage.toFront();
+                runtimeStages.get(RuntimeStageType.DRAW_GEOMETRY).toFront();
             }
         });
         editMenu.getItems().add(drawGeometry);
