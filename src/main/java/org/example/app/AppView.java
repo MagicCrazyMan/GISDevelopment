@@ -18,6 +18,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -29,6 +30,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,6 +53,7 @@ public class AppView {
     Menu fileMenu;
     Menu operationMenu;
     Menu queryMenu;
+    Menu editMenu;
     GridPane mainPane;
     StackPane contentPane;
     VBox layerPane;
@@ -74,6 +77,7 @@ public class AppView {
 
     Stage simpleQueryStage;
     Stage clickQueryStage;
+    Stage drawGeometryStage;
     ClickQueryType clickQueryType = ClickQueryType.NULL;
 
     private enum ClickQueryType {
@@ -231,7 +235,40 @@ public class AppView {
         });
         queryMenu.getItems().addAll(simpleQuery, clickQuery);
 
-        menuBar.getMenus().addAll(fileMenu, operationMenu, queryMenu);
+        editMenu = new Menu("Edit");
+        MenuItem drawGeometry = new MenuItem("Draw");
+        drawGeometry.setOnAction(actionEvent -> {
+            final String[] buttonString = new String[]{"Add Layer", "Draw Point", "Draw Line", "Draw Polygon", "Clear All", "Options"};
+            if (Objects.isNull(drawGeometryStage)) {
+                StackPane stackPane = new StackPane();
+                ToolBar toolBar = new ToolBar();
+                Button[] btns = new Button[buttonString.length];
+                for (int i = 0; i < btns.length; i++) {
+                    Button btn = new Button(buttonString[i]);
+                    btn.setPrefWidth(150);
+                    btns[i] = btn;
+                }
+                toolBar.setStyle("-fx-background-color: transparent");
+                toolBar.setOrientation(Orientation.VERTICAL);
+                toolBar.getItems().addAll(btns);
+                stackPane.getChildren().add(toolBar);
+
+                drawGeometryStage = new Stage();
+                drawGeometryStage.setTitle("Draw");
+                drawGeometryStage.setResizable(false);
+                drawGeometryStage.setScene(new Scene(stackPane));
+                drawGeometryStage.setOnCloseRequest(windowEvent -> {
+                    drawGeometryStage.close();
+                    drawGeometryStage = null;
+                });
+                drawGeometryStage.show();
+            } else {
+                drawGeometryStage.toFront();
+            }
+        });
+        editMenu.getItems().add(drawGeometry);
+
+        menuBar.getMenus().addAll(fileMenu, operationMenu, queryMenu, editMenu);
         GridPane.setColumnSpan(menuBar, GridPane.REMAINING);
         mainPane.add(menuBar, 0, 0);
     }
