@@ -9,14 +9,11 @@ import com.esri.arcgisruntime.layers.RasterLayer;
 import com.esri.arcgisruntime.layers.WmsLayer;
 import com.esri.arcgisruntime.loadable.LoadStatus;
 import com.esri.arcgisruntime.mapping.GeoElement;
-import com.esri.arcgisruntime.mapping.view.Callout;
-import com.esri.arcgisruntime.mapping.view.IdentifyLayerResult;
-import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.mapping.LayerList;
+import com.esri.arcgisruntime.mapping.view.*;
 import com.esri.arcgisruntime.raster.Raster;
-import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
-import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
-import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
-import com.esri.arcgisruntime.symbology.SimpleRenderer;
+import com.esri.arcgisruntime.symbology.*;
+import com.esri.arcgisruntime.util.ListenableList;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Alert;
 import javafx.stage.FileChooser;
@@ -225,6 +222,50 @@ public class AppController {
                 e.printStackTrace();
             }
         });
+    }
+
+    private final GraphicsOverlay temporaryGraphicOverlay = new GraphicsOverlay();
+
+    public void drawTemporaryGeometry(@NotNull MapView parentView, @NotNull AppView.DrawingType drawingType, @NotNull Symbol symbol, @NotNull PointCollection points) {
+        temporaryGraphicOverlay.getGraphics().clear(); // clear existing graphic
+        switch (drawingType) {
+            case MARKER: {
+                if (points.size() >= 1) {
+                    for (Point point : points) {
+                        Graphic graphic = new Graphic(point, symbol);
+                        temporaryGraphicOverlay.getGraphics().add(graphic);
+                    }
+                }
+                break;
+            }
+            case LINE: {
+                if (points.size() >= 2) {
+                    Graphic graphic = new Graphic(new Polyline(points), symbol);
+                    temporaryGraphicOverlay.getGraphics().add(graphic);
+                }
+                break;
+            }
+            case POLYGON: {
+                if (points.size() >= 3) {
+                    Graphic graphic = new Graphic(new Polygon(points), symbol);
+                    temporaryGraphicOverlay.getGraphics().add(graphic);
+                }
+                break;
+            }
+        }
+
+
+        ListenableList<GraphicsOverlay> graphicsOverlays = parentView.getGraphicsOverlays();
+        if (!graphicsOverlays.contains(temporaryGraphicOverlay)) { // if graphic overlay is not included in map view ,add it
+            graphicsOverlays.add(temporaryGraphicOverlay);
+        }
+    }
+
+    public void clearTemporaryGeometry(@NotNull MapView parentView, @NotNull PointCollection points) {
+        points.clear();
+        if (parentView.getGraphicsOverlays().contains(temporaryGraphicOverlay)) {
+            temporaryGraphicOverlay.getGraphics().clear();
+        }
     }
 
     private void clickQueryFeaturesProcess(@NotNull FeatureLayer featureLayer, @NotNull Map<String, Object> attributes) {

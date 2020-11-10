@@ -2,6 +2,7 @@ package org.example.app;
 
 import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.PointCollection;
 import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.layers.Layer;
 import com.esri.arcgisruntime.loadable.LoadStatus;
@@ -12,15 +13,16 @@ import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.*;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
-import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
-import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
+import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.*;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
@@ -67,17 +69,53 @@ public class AppView {
     enum RuntimeStageType {
         SIMPLE_QUERY,
         CLICK_QUERY,
-        DRAW_GEOMETRY
+        DRAW_GEOMETRY,
+        DRAW_OPTIONS
     }
 
     Map<RuntimeStageType, Stage> runtimeStages = new HashMap<>();
-    ClickQueryType clickQueryType = ClickQueryType.NULL;
 
-    private enum ClickQueryType {
+    private enum ClickBehaviours {
         NULL,
         SELECTED_FEATURE,
-        IDENTITY
+        IDENTITY,
+        DRAWING,
     }
+
+    ClickBehaviours clickBehaviour = ClickBehaviours.NULL;
+
+    private static class DrawingOptions {
+
+        final SimpleMarkerSymbol markerSymbol = new SimpleMarkerSymbol();
+        final SimpleLineSymbol lineSymbol = new SimpleLineSymbol();
+        final SimpleFillSymbol fillSymbol = new SimpleFillSymbol();
+
+        public DrawingOptions() {
+            // default style
+            markerSymbol.setStyle(SimpleMarkerSymbol.Style.CIRCLE);
+            markerSymbol.setSize(5);
+            markerSymbol.setColor(0xFF0000FF);
+
+            lineSymbol.setStyle(SimpleLineSymbol.Style.SOLID);
+            lineSymbol.setMarkerStyle(SimpleLineSymbol.MarkerStyle.NONE);
+            lineSymbol.setMarkerPlacement(SimpleLineSymbol.MarkerPlacement.BEGIN);
+            lineSymbol.setWidth(2);
+            lineSymbol.setColor(0xFF0000FF);
+
+            fillSymbol.setStyle(SimpleFillSymbol.Style.SOLID);
+            fillSymbol.setColor(0xFFFFFFFF);
+            fillSymbol.setOutline(lineSymbol);
+        }
+    }
+
+    DrawingOptions drawingOptions;
+    PointCollection drawingCollection;
+
+    public enum DrawingType {
+        MARKER, LINE, POLYGON
+    }
+
+    DrawingType drawingType = DrawingType.MARKER;
 
     private final AppController controller = new AppController();
 
@@ -201,15 +239,15 @@ public class AppView {
                 ToolBar toolBar = new ToolBar();
                 RadioButton selectFeatureBtn = new RadioButton("Select Feature");
                 RadioButton identityBtn = new RadioButton("Identity");
-                clickQueryType = ClickQueryType.SELECTED_FEATURE;
+                clickBehaviour = ClickBehaviours.SELECTED_FEATURE;
                 selectFeatureBtn.setSelected(true); // select feature is default
                 selectFeatureBtn.setOnAction(actionEvent1 -> {
                     identityBtn.setSelected(false);
-                    clickQueryType = ClickQueryType.SELECTED_FEATURE;
+                    clickBehaviour = ClickBehaviours.SELECTED_FEATURE;
                 });
                 identityBtn.setOnAction(actionEvent1 -> {
                     selectFeatureBtn.setSelected(false);
-                    clickQueryType = ClickQueryType.IDENTITY;
+                    clickBehaviour = ClickBehaviours.IDENTITY;
                 });
                 toolBar.getItems().addAll(selectFeatureBtn, identityBtn);
                 stackPane.getChildren().add(toolBar);
@@ -229,20 +267,138 @@ public class AppView {
 
         editMenu = new Menu("Edit");
         MenuItem drawGeometry = new MenuItem("Draw");
+        drawingOptions = new DrawingOptions();
+        final Map<String, EventHandler<ActionEvent>> eventHandlerMap = new LinkedHashMap<>();
+//        eventHandlerMap.put("Add Layer", actionEvent12 -> {
+
+//        });
+        eventHandlerMap.put("Draw Point", actionEvent12 -> {
+            clickBehaviour = ClickBehaviours.DRAWING;
+            if (!drawingType.equals(DrawingType.MARKER)) {
+                drawingCollection.clear();
+                drawingType = DrawingType.MARKER;
+            }
+        });
+        eventHandlerMap.put("Draw Line", actionEvent12 -> {
+            clickBehaviour = ClickBehaviours.DRAWING;
+            if (!drawingType.equals(DrawingType.LINE)) {
+                drawingCollection.clear();
+                drawingType = DrawingType.LINE;
+            }
+        });
+        eventHandlerMap.put("Draw Polygon", actionEvent12 -> {
+            clickBehaviour = ClickBehaviours.DRAWING;
+            if (!drawingType.equals(DrawingType.POLYGON)) {
+                drawingCollection.clear();
+                drawingType = DrawingType.POLYGON;
+            }
+        });
+        eventHandlerMap.put("Clear All", actionEvent12 -> controller.clearTemporaryGeometry(mainMapView, drawingCollection));
+        eventHandlerMap.put("Options", actionEvent12 -> {
+            if (!runtimeStages.containsKey(RuntimeStageType.DRAW_OPTIONS)) {
+                TabPane tabPane = new TabPane();
+                VBox markerPane = new VBox();
+                StackPane linePane = new StackPane();
+                StackPane polygonPane = new StackPane();
+
+                // init marker pane
+                {
+                    markerPane.setSpacing(5);
+                    ToolBar styleToolbar = new ToolBar();
+                    styleToolbar.setStyle("-fx-background-color: transparent");
+                    Label styleLabel = new Label("Style");
+                    ChoiceBox<SimpleMarkerSymbol.Style> styleChoiceBox = new ChoiceBox<>();
+                    styleChoiceBox.setConverter(new StringConverter<>() {
+                        @Override
+                        public String toString(SimpleMarkerSymbol.Style style) {
+                            return style.name();
+                        }
+
+                        @Override
+                        public SimpleMarkerSymbol.Style fromString(String s) {
+                            return SimpleMarkerSymbol.Style.valueOf(s);
+                        }
+                    });
+                    styleChoiceBox.getItems().addAll(SimpleMarkerSymbol.Style.values());
+                    styleChoiceBox.setValue(drawingOptions.markerSymbol.getStyle());
+                    styleChoiceBox.setPrefWidth(200);
+                    styleToolbar.getItems().addAll(styleLabel, styleChoiceBox);
+
+                    ToolBar sizeToolbar = new ToolBar();
+                    sizeToolbar.setStyle("-fx-background-color: transparent");
+                    Label sizeLabel = new Label("Size");
+                    Label currentSizeLabel = new Label("Current Size: " + (int) drawingOptions.markerSymbol.getSize());
+                    Slider sizeSlider = new Slider();
+                    sizeSlider.setShowTickLabels(true);
+                    sizeSlider.setShowTickMarks(true);
+                    sizeSlider.setSnapToTicks(true);
+                    sizeSlider.setMin(1);
+                    sizeSlider.setMax(50);
+                    sizeSlider.setValue(drawingOptions.markerSymbol.getSize());
+                    sizeSlider.valueProperty().addListener((observableValue, number, t1) -> currentSizeLabel.setText(String.format("Current Size: %d", t1.intValue())));
+                    sizeToolbar.getItems().addAll(sizeLabel, sizeSlider, currentSizeLabel);
+
+                    ToolBar colorToolbar = new ToolBar();
+                    colorToolbar.setStyle("-fx-background-color: transparent");
+                    Label colorLabel = new Label("Color");
+                    ColorPicker colorPicker = new ColorPicker();
+                    int color = drawingOptions.markerSymbol.getColor();
+                    colorPicker.setValue(Color.rgb((color >>> 16) & 0xFF, (color >>> 8) & 0xFF, color & 0xFF, ((color >>> 24) & 0xFF) / 255.0));
+                    colorToolbar.getItems().addAll(colorLabel, colorPicker);
+
+                    ToolBar submitToolbar = new ToolBar();
+                    submitToolbar.setStyle("-fx-background-color: transparent");
+                    Button applyBtn = new Button("Apply");
+                    applyBtn.setOnAction(actionEvent -> {
+                        drawingOptions.markerSymbol.setSize((float) sizeSlider.getValue());
+                        drawingOptions.markerSymbol.setStyle(styleChoiceBox.getValue());
+                        Color newColor = colorPicker.getValue();
+                        int r = (int) newColor.getRed();
+                        int g = (int) newColor.getGreen();
+                        int b = (int) newColor.getBlue();
+                        int a = (int) newColor.getOpacity();
+                        drawingOptions.markerSymbol.setColor((r << 16) & 0x00FF0000 | (g << 8) & 0x0000FF00 | b & 0x000000FF | (a << 24) & 0xFF000000);
+                    });
+                    submitToolbar.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+                    submitToolbar.getItems().add(applyBtn);
+
+                    markerPane.getChildren().addAll(styleToolbar, sizeToolbar, colorToolbar, submitToolbar);
+                }
+
+                Tab markerTab = new Tab("Marker Symbol");
+                markerTab.setContent(markerPane);
+                markerTab.setClosable(false);
+                Tab lineTab = new Tab("Line Symbol");
+                lineTab.setContent(linePane);
+                lineTab.setClosable(false);
+                Tab polygonTab = new Tab("Polygon Symbol");
+                polygonTab.setContent(polygonPane);
+                polygonTab.setClosable(false);
+                tabPane.getTabs().addAll(markerTab, lineTab, polygonTab);
+
+                Stage drawingOptionsStage = new Stage();
+                drawingOptionsStage.setTitle("Draw Options");
+                drawingOptionsStage.setResizable(false);
+                drawingOptionsStage.setScene(new Scene(tabPane));
+                drawingOptionsStage.setOnCloseRequest(windowEvent -> runtimeStages.remove(RuntimeStageType.DRAW_OPTIONS));
+                drawingOptionsStage.show();
+                runtimeStages.put(RuntimeStageType.DRAW_OPTIONS, drawingOptionsStage);
+            } else {
+                runtimeStages.get(RuntimeStageType.DRAW_OPTIONS).toFront();
+            }
+        });
         drawGeometry.setOnAction(actionEvent -> {
-            final String[] buttonString = new String[]{"Add Layer", "Draw Point", "Draw Line", "Draw Polygon", "Clear All", "Options"};
             if (!runtimeStages.containsKey(RuntimeStageType.DRAW_GEOMETRY)) {
                 StackPane stackPane = new StackPane();
                 ToolBar toolBar = new ToolBar();
-                Button[] btns = new Button[buttonString.length];
-                for (int i = 0; i < btns.length; i++) {
-                    Button btn = new Button(buttonString[i]);
+                for (Map.Entry<String, EventHandler<ActionEvent>> eventHandlerEntry : eventHandlerMap.entrySet()) {
+                    Button btn = new Button(eventHandlerEntry.getKey());
+                    btn.setOnAction(eventHandlerEntry.getValue());
                     btn.setPrefWidth(150);
-                    btns[i] = btn;
+                    toolBar.getItems().add(btn);
                 }
                 toolBar.setStyle("-fx-background-color: transparent");
                 toolBar.setOrientation(Orientation.VERTICAL);
-                toolBar.getItems().addAll(btns);
                 stackPane.getChildren().add(toolBar);
 
                 Stage drawGeometryStage = new Stage();
@@ -305,6 +461,11 @@ public class AppView {
         StackPane.setAlignment(mainMapView, Pos.TOP_LEFT);
         mainMapView.setMap(mainMap);
 
+        mainMap.addDoneLoadingListener(() -> {
+            if (mainMap.getLoadStatus().equals(LoadStatus.LOADED)) {
+                drawingCollection = new PointCollection(mainMap.getSpatialReference());
+            }
+        });
         // add listener, any layer changed will notify layer manager
         mainMap.getOperationalLayers().addListChangedListener(listChangedEvent -> {
             if (Objects.nonNull(layerPane)) {
@@ -556,25 +717,54 @@ public class AppView {
     private void initMapViewClicker() {
         mainMapView.setOnDragDetected(mouseEvent -> isDragging = true);
         mainMapView.setOnMouseClicked(mouseEvent -> {
-            if (!isDragging) {
-                Point2D screenPoint = new Point2D(mouseEvent.getX(), mouseEvent.getY());
-                Point mapPoint = mainMapView.screenToLocation(screenPoint);
-                if (Objects.nonNull(mapPoint)) {
-                    if (mainMap.getOperationalLayers().size() > 0)
-                        switch (clickQueryType) {
+            if (mouseEvent.getClickCount() == 1) {
+                if (!isDragging) {
+                    Point2D screenPoint = new Point2D(mouseEvent.getX(), mouseEvent.getY());
+                    Point mapPoint = mainMapView.screenToLocation(screenPoint);
+                    if (Objects.nonNull(mapPoint)) {
+                        switch (clickBehaviour) {
                             case IDENTITY: {
-                                controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), screenPoint);
+                                if (mainMap.getOperationalLayers().size() > 0) {
+                                    controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), screenPoint);
+                                }
                                 break;
                             }
                             case SELECTED_FEATURE: {
-                                controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), mapPoint);
+                                if (mainMap.getOperationalLayers().size() > 0) {
+                                    controller.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), mapPoint);
+                                }
+                                break;
+                            }
+                            case DRAWING: {
+                                drawingCollection.add(mapPoint);
+                                switch (drawingType) {
+                                    case POLYGON:
+                                        controller.drawTemporaryGeometry(mainMapView, drawingType, drawingOptions.fillSymbol, drawingCollection);
+                                        break;
+                                    case LINE:
+                                        controller.drawTemporaryGeometry(mainMapView, drawingType, drawingOptions.lineSymbol, drawingCollection);
+                                        break;
+                                    case MARKER:
+                                        controller.drawTemporaryGeometry(mainMapView, drawingType, drawingOptions.markerSymbol, drawingCollection);
+                                        break;
+                                }
                                 break;
                             }
                         }
-                    controller.showCallOut(mainMapView, mapPoint);
+                        // controller.showCallOut(mainMapView, mapPoint);
+                    }
+                } else {
+                    isDragging = false;
                 }
             } else {
-                isDragging = false;
+                if (clickBehaviour == ClickBehaviours.DRAWING) {
+                    switch (drawingType) {
+                        case POLYGON:
+                        case LINE:
+                        case MARKER:
+                            break;
+                    }
+                }
             }
         });
     }
