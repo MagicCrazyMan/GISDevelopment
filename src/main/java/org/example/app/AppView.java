@@ -353,11 +353,11 @@ public class AppView {
                         drawingOptions.markerSymbol.setSize((float) sizeSlider.getValue());
                         drawingOptions.markerSymbol.setStyle(styleChoiceBox.getValue());
                         Color newColor = colorPicker.getValue();
-                        int r = (int) newColor.getRed();
-                        int g = (int) newColor.getGreen();
-                        int b = (int) newColor.getBlue();
-                        int a = (int) newColor.getOpacity();
-                        drawingOptions.markerSymbol.setColor((r << 16) & 0x00FF0000 | (g << 8) & 0x0000FF00 | b & 0x000000FF | (a << 24) & 0xFF000000);
+                        int r = ((int) newColor.getRed() * 255) << 16;
+                        int g = ((int) newColor.getGreen() * 255) << 8;
+                        int b = ((int) newColor.getBlue() * 255);
+                        int a = ((int) newColor.getOpacity() * 255) << 24;
+                        drawingOptions.markerSymbol.setColor(a | r | g | b);
                     });
                     submitToolbar.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
                     submitToolbar.getItems().add(applyBtn);
@@ -394,7 +394,7 @@ public class AppView {
                 for (Map.Entry<String, EventHandler<ActionEvent>> eventHandlerEntry : eventHandlerMap.entrySet()) {
                     Button btn = new Button(eventHandlerEntry.getKey());
                     btn.setOnAction(eventHandlerEntry.getValue());
-                    btn.setPrefWidth(150);
+                    btn.setPrefWidth(250);
                     toolBar.getItems().add(btn);
                 }
                 toolBar.setStyle("-fx-background-color: transparent");
@@ -442,7 +442,7 @@ public class AppView {
             Dragboard db = dragEvent.getDragboard();
             if (db.hasFiles() && db.getFiles().size() > 0) {
                 File file = db.getFiles().get(0);
-                controller.loadShapefile( mainMapView, file);
+                controller.loadShapefile(mainMapView, file);
             }
         });
         scrollPane.setContent(layerPane);
