@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.app.AppController">
+   <children>
+      <MenuBar>
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+              <MenuItem mnemonicParsing="false" onAction="#onExit" text="Exit" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="View">
+            <items>
+              <MenuItem mnemonicParsing="false" onAction="#onZoomIn" text="Zoom In" />
+                  <MenuItem mnemonicParsing="false" onAction="#onZoomOut" text="Zoom Out" />
+                  <MenuItem mnemonicParsing="false" onAction="#onFullExtent" text="Full Extent" />
+                  <MenuItem mnemonicParsing="false" onAction="#onClockwiseRotate" text="Clockwise Rotate" />
+                  <MenuItem mnemonicParsing="false" onAction="#onCounterClockwiseRotate" text="Counterclockwise Rotate" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Query">
+            <items>
+              <MenuItem mnemonicParsing="false" onAction="#onSimpleQuery" text="Simple Query" />
+                  <MenuItem mnemonicParsing="false" onAction="#onClickQuery" text="Click Query" />
+            </items>
+          </Menu>
+            <Menu mnemonicParsing="false" text="Edit">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#onDraw" text="Draw" />
+              </items>
+            </Menu>
+        </menus>
+      </MenuBar>
+      <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
+         <children>
+            <SplitPane dividerPositions="0.0" HBox.hgrow="ALWAYS">
+               <items>
+                  <ScrollPane fx:id="layerScrollPane" minWidth="150.0" prefWidth="150.0" SplitPane.resizableWithParent="false">
+                     <content>
+                        <VBox fx:id="layerPane" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="150.0" spacing="15.0">
+                           <padding>
+                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                           </padding>
+                        </VBox>
+                     </content>
+                  </ScrollPane>
+                  <StackPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0">
+                     <children>
+                        <StackPane fx:id="mainMapPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="750.0" minWidth="1100.0" prefHeight="750.0" prefWidth="1100.0" StackPane.alignment="TOP_LEFT" />
+                        <HBox fillHeight="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" StackPane.alignment="TOP_LEFT">
+                           <children>
+                              <ToolBar style="-fx-background-color: transparent; -fx-padding: 0px;">
+                                 <items>
+                                  <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#onRefresh" text="Refresh Button" />
+                                 </items>
+                              </ToolBar>
+                           </children>
+                           <StackPane.margin>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                           </StackPane.margin>
+                        </HBox>
+                        <HBox fillHeight="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" StackPane.alignment="TOP_RIGHT">
+                           <children>
+                              <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" spacing="10.0">
+                                 <children>
+                                    <StackPane fx:id="eagleMapPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="200.0" minWidth="300.0" prefHeight="200.0" prefWidth="300.0" style="-fx-border-color: gray;" VBox.vgrow="ALWAYS" />
+                                    <ChoiceBox fx:id="basemapChoiceBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS" />
+                                 </children>
+                                 <HBox.margin>
+                                    <Insets />
+                                 </HBox.margin>
+                              </VBox>
+                           </children>
+                           <StackPane.margin>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                           </StackPane.margin>
+                        </HBox>
+                        <HBox fillHeight="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" StackPane.alignment="BOTTOM_RIGHT">
+                           <StackPane.margin>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                           </StackPane.margin>
+                           <children>
+                              <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" style="-fx-background-color: transparent; -fx-padding: 0px;">
+                                <items>
+                                  <Button fx:id="loadShapefileBtn" defaultButton="true" mnemonicParsing="false" onAction="#onLoadShapefile" text="Load Shapefile" />
+                                    <Button fx:id="loadGeoDatabaseBtn" mnemonicParsing="false" onAction="#onLoadGeoDatabase" text="Load GeoDatabase" />
+                                    <Button fx:id="loadRasterBtn" mnemonicParsing="false" onAction="#onLoadRaster" text="Load Raster" />
+                                </items>
+                              </ToolBar>
+                           </children>
+                        </HBox>
+                        <HBox fillHeight="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" StackPane.alignment="BOTTOM_LEFT">
+                           <StackPane.margin>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                           </StackPane.margin>
+                           <children>
+                              <VBox spacing="10.0">
+                                 <children>
+                                    <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" style="-fx-background-color: transparent; -fx-padding: 0px;">
+                                      <items>
+                                        <Button fx:id="callOutBtn" mnemonicParsing="false" onAction="#onShowCellOut" text="Show Cell Out Position" />
+                                          <TextField fx:id="longitudeText" maxWidth="100.0" />
+                                          <TextField fx:id="latitudeText" maxWidth="100.0" />
+                                      </items>
+                                    </ToolBar>
+                                    <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" style="-fx-background-color: transparent; -fx-padding: 0px;">
+                                       <items>
+                                          <Button fx:id="loadOnlineDataBtn" mnemonicParsing="false" onAction="#onLoadOnlineData" text="Loal Online Data" />
+                                          <TextField fx:id="onlineDataURLText" minWidth="-Infinity" prefWidth="300.0" />
+                                          <ChoiceBox fx:id="onlineDataTypeChoiceBox" minWidth="-Infinity" prefWidth="150.0" />
+                                       </items>
+                                    </ToolBar>
+                                 </children>
+                              </VBox>
+                           </children>
+                        </HBox>
+                     </children>
+                  </StackPane>
+               </items>
+            </SplitPane>
+         </children>
+      </HBox>
+   </children>
+</VBox>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+
+<VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" spacing="10.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.app.DrawController">
+   <children>
+      <HBox>
+         <children>
+            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="200.0" mnemonicParsing="false" onAction="#onDrawPoint" text="Draw Point" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox>
+         <children>
+            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="200.0" mnemonicParsing="false" onAction="#onDrawPolyline" text="Draw Polyline" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox>
+         <children>
+            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="200.0" mnemonicParsing="false" onAction="#onDrawPolygon" text="Draw Polygon" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox>
+         <children>
+            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="200.0" mnemonicParsing="false" onAction="#onDrawClearAll" text="Clear All" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox>
+         <children>
+            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="200.0" mnemonicParsing="false" onAction="#onDrawOptions" text="Options" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+   </children>
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+   </padding>
+</VBox>
