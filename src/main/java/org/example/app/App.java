@@ -31,7 +31,7 @@ public class App extends Application {
             FXMLLoader fxmlLoader = new FXMLLoader(Objects.requireNonNull(App.class.getResource("App.fxml")));
             Pane pane = fxmlLoader.load();
             AppController appController = fxmlLoader.getController();
-            appController.setPrimaryStage(primaryStage);
+            appController.setParentStage(primaryStage);
             primaryStage.setScene(new Scene(pane));
             primaryStage.setTitle("Map Window");
             primaryStage.setOnShown(windowEvent -> {

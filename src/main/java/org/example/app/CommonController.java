@@ -4,6 +4,7 @@ import com.esri.arcgisruntime.concurrent.ListenableFuture;
 import com.esri.arcgisruntime.data.*;
 import com.esri.arcgisruntime.geometry.*;
 import com.esri.arcgisruntime.internal.util.StringUtil;
+import com.esri.arcgisruntime.layers.FeatureCollectionLayer;
 import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.layers.RasterLayer;
 import com.esri.arcgisruntime.layers.WmsLayer;
@@ -244,24 +245,24 @@ public class CommonController {
         });
     }
 
-    private final GraphicsOverlay temporaryGraphicOverlay = new GraphicsOverlay();
+    private static final GraphicsOverlay temporaryGraphicOverlay = new GraphicsOverlay();
 
-    public void drawTemporaryGeometry(@NotNull MapView parentView, @NotNull AppController.DrawingType drawingType, @NotNull Symbol symbol, @NotNull PointCollection points) {
-        temporaryGraphicOverlay.getGraphics().clear(); // clear existing graphic
+    public void drawTemporaryGeometry(@NotNull MapView parentView, @NotNull AppController.DrawingType drawingType, @NotNull Symbol symbol, @NotNull PointCollection points, boolean clearExisted) {
+        if (clearExisted) temporaryGraphicOverlay.getGraphics().clear(); // clear existing graphics
         switch (drawingType) {
+            case POLYLINE: {
+                if (points.size() >= 2) {
+                    Graphic graphic = new Graphic(new Polyline(points), symbol);
+                    temporaryGraphicOverlay.getGraphics().add(graphic);
+                }
+                break;
+            }
             case MARKER: {
                 if (points.size() >= 1) {
                     for (Point point : points) {
                         Graphic graphic = new Graphic(point, symbol);
                         temporaryGraphicOverlay.getGraphics().add(graphic);
                     }
-                }
-                break;
-            }
-            case POLYLINE: {
-                if (points.size() >= 2) {
-                    Graphic graphic = new Graphic(new Polyline(points), symbol);
-                    temporaryGraphicOverlay.getGraphics().add(graphic);
                 }
                 break;
             }

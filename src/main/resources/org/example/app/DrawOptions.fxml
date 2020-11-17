@@ -5,46 +5,161 @@
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.ColorPicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<TabPane maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" tabClosingPolicy="UNAVAILABLE" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1" fx:controller="org.example.app.DrawOptionsController">
-  <tabs>
-    <Tab text="Marker Symbol">
-         <content>
-            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" spacing="10.0">
-               <children>
-                  <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" style="-fx-background-color: transparent; -fx-padding: 0px;">
-                     <items>
-                        <Label text="Style" />
-                        <ChoiceBox fx:id="markerStyleChoiceBox" minWidth="150.0" prefWidth="150.0" />
-                        <Label text="Color" />
-                        <ColorPicker fx:id="markerColorPicker" />
-                     </items>
-                  </ToolBar>
-                  <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" style="-fx-background-color: transparent; -fx-padding: 0px;">
-                     <items>
-                        <Label text="Size" />
-                        <Slider fx:id="markerSizeSlider" max="50.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="1.0" />
-                        <Label text="Current Size: " />
-                        <Label fx:id="markerSizeLabel" />
-                     </items>
-                  </ToolBar>
-                  <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" nodeOrientation="RIGHT_TO_LEFT" style="-fx-background-color: transparent; -fx-padding: 0px;">
-                     <items>
-                        <Button fx:id="markerApplyBtn" mnemonicParsing="false" onAction="#onMarkerStyleApply" text="Apply" />
-                     </items>
-                  </ToolBar>
-               </children>
-               <padding>
-                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-               </padding>
-            </VBox>
-         </content></Tab>
-    <Tab text="Polyline Symbol" />
-      <Tab text="Polygon Symbol" />
-  </tabs>
-</TabPane>
+<Pane fx:id="mainPane" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.app.DrawOptionsController">
+   <children>
+      <TabPane fx:id="tabPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" tabClosingPolicy="UNAVAILABLE">
+        <tabs>
+          <Tab text="Marker Symbol">
+               <content>
+                  <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" spacing="10.0">
+                     <children>
+                        <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" style="-fx-background-color: transparent; -fx-padding: 0px;">
+                           <items>
+                              <Label text="Style: " />
+                              <ChoiceBox fx:id="markerStyleChoiceBox" minWidth="150.0" prefWidth="150.0" />
+                              <Label text="Color: " />
+                              <ColorPicker fx:id="markerColorPicker" />
+                           </items>
+                        </ToolBar>
+                        <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" style="-fx-background-color: transparent; -fx-padding: 0px;">
+                           <items>
+                              <Label text="Size: " />
+                              <Slider fx:id="markerSizeSlider" max="50.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="1.0" />
+                              <Label text="Current Size: " />
+                              <Label fx:id="markerSizeLabel" />
+                           </items>
+                        </ToolBar>
+                        <ToolBar nodeOrientation="RIGHT_TO_LEFT" style="-fx-background-color: transparent; -fx-padding: 0px;">
+                           <items>
+                              <Button fx:id="markerApplyBtn" mnemonicParsing="false" onAction="#onMarkerStyleApply" text="Apply" />
+                           </items>
+                        </ToolBar>
+                     </children>
+                     <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </padding>
+                  </VBox>
+               </content>
+            </Tab>
+          <Tab text="Polyline Symbol">
+               <content>
+                  <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" spacing="10.0">
+                     <children>
+                        <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" style="-fx-background-color: transparent; -fx-padding: 0px;">
+                           <items>
+                              <Label text="Style: " />
+                              <ChoiceBox fx:id="polylineStyleChoiceBox" minWidth="150.0" prefWidth="150.0" />
+                              <Label text="Color: " />
+                              <ColorPicker fx:id="polylineColorPicker" />
+                           </items>
+                        </ToolBar>
+                        <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" style="-fx-background-color: transparent; -fx-padding: 0px;">
+                           <items>
+                              <Label text="Size: " />
+                              <Slider fx:id="polylineSizeSlider" max="50.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="1.0" />
+                              <Label text="Current Size: " />
+                              <Label fx:id="polylineSizeLabel" />
+                           </items>
+                        </ToolBar>
+                        <HBox alignment="CENTER_LEFT">
+                           <children>
+                              <Label text="Arrow Style: " />
+                              <ChoiceBox fx:id="polylineMarkerStyleChoiceBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" HBox.hgrow="ALWAYS" />
+                           </children>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT">
+                           <children>
+                              <Label text="Arrow Placement: " />
+                              <ChoiceBox fx:id="polylineMarkerPlacementChoiceBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" HBox.hgrow="ALWAYS">
+                                 <HBox.margin>
+                                    <Insets />
+                                 </HBox.margin>
+                              </ChoiceBox>
+                           </children>
+                        </HBox>
+                        <ToolBar nodeOrientation="RIGHT_TO_LEFT" style="-fx-background-color: transparent; -fx-padding: 0px;">
+                           <items>
+                              <Button fx:id="polylineApplyBtn" mnemonicParsing="false" onAction="#onPolylineStyleApply" text="Apply" />
+                           </items>
+                        </ToolBar>
+                     </children>
+                     <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </padding>
+                  </VBox>
+               </content>
+            </Tab>
+            <Tab text="Polygon Symbol">
+              <content>
+                  <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" spacing="10.0">
+                     <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </padding>
+                     <children>
+                        <Label text="Outline Symbol">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                        </Label>
+                        <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" style="-fx-background-color: transparent; -fx-padding: 0px;">
+                           <items>
+                              <Label text="Style: " />
+                              <ChoiceBox fx:id="polygonOutlineStyleChoiceBox" minWidth="150.0" prefWidth="150.0" />
+                              <Label text="Color: " />
+                              <ColorPicker fx:id="polygonOutlineColorPicker" />
+                           </items>
+                        </ToolBar>
+                        <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" style="-fx-background-color: transparent; -fx-padding: 0px;">
+                           <items>
+                              <Label text="Size: " />
+                              <Slider fx:id="polygonOutlineSizeSlider" max="50.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="1.0" />
+                              <Label text="Current Size: " />
+                              <Label fx:id="polylineOutlineSizeLabel" />
+                           </items>
+                        </ToolBar>
+                        <Separator prefWidth="200.0" />
+                        <Label text="Fill Symbol">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                        </Label>
+                        <VBox spacing="5.0">
+                           <children>
+                              <HBox alignment="CENTER_LEFT" spacing="5.0">
+                                 <children>
+                                    <Label text="Style: " />
+                                 </children>
+                              </HBox>
+                              <ListView fx:id="polygonFillStyleListView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="150.0" prefWidth="100.0" />
+                           </children>
+                        </VBox>
+                        <ToolBar style="-fx-background-color: transparent; -fx-padding: 0px;">
+                           <items>
+                              <Label text="Color: " />
+                              <ColorPicker fx:id="polygonFillColorPicker" />
+                           </items>
+                        </ToolBar>
+                        <ToolBar nodeOrientation="RIGHT_TO_LEFT" style="-fx-background-color: transparent; -fx-padding: 0px;">
+                           <items>
+                              <Button fx:id="polygonApplyBtn" mnemonicParsing="false" onAction="#onPolygonStyleApply" text="Apply" />
+                           </items>
+                        </ToolBar>
+                     </children>
+                  </VBox>
+              </content>
+            </Tab>
+        </tabs>
+      </TabPane>
+   </children>
+</Pane>

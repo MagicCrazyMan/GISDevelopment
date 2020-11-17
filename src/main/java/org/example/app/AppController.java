@@ -14,10 +14,7 @@ import com.esri.arcgisruntime.mapping.view.*;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.*;
@@ -26,7 +23,6 @@ import javafx.scene.control.*;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.StringConverter;
@@ -35,7 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class AppController {
+public class AppController extends AController{
     public StackPane eagleMapPane;
     public StackPane mainMapPane;
     public VBox layerPane;
@@ -93,13 +89,18 @@ public class AppController {
             lineSymbol.setWidth(2);
             lineSymbol.setColor(0xFF0000FF);
 
+            SimpleLineSymbol outlineSymbol = new SimpleLineSymbol();
+            outlineSymbol.setStyle(SimpleLineSymbol.Style.SOLID);
+            outlineSymbol.setMarkerStyle(SimpleLineSymbol.MarkerStyle.NONE);
+            outlineSymbol.setMarkerPlacement(SimpleLineSymbol.MarkerPlacement.BEGIN);
+            outlineSymbol.setWidth(2);
+            outlineSymbol.setColor(0xFF0000FF);
             fillSymbol.setStyle(SimpleFillSymbol.Style.SOLID);
             fillSymbol.setColor(0xFFFFFFFF);
-            fillSymbol.setOutline(lineSymbol);
+            fillSymbol.setOutline(outlineSymbol);
         }
     }
 
-    Stage primaryStage;
     ArcGISMap mainMap;
     ArcGISMap eagleMap;
     MapView mainMapView;
@@ -120,10 +121,6 @@ public class AppController {
         initBasemapSelector();
         initOnlineDataTypeSelector();
         initMapViewClicker();
-    }
-
-    public void setPrimaryStage(Stage stage) {
-        primaryStage = stage;
     }
 
     private void initLayerPane() {
@@ -348,13 +345,15 @@ public class AppController {
                                 drawingCollection.add(mapPoint);
                                 switch (drawingType) {
                                     case POLYGON:
-                                        commonController.drawTemporaryGeometry(mainMapView, drawingType, drawingOptions.fillSymbol, drawingCollection);
+                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.MARKER, drawingOptions.markerSymbol, drawingCollection,true);
+                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.POLYGON, drawingOptions.fillSymbol, drawingCollection,false);
                                         break;
                                     case POLYLINE:
-                                        commonController.drawTemporaryGeometry(mainMapView, drawingType, drawingOptions.lineSymbol, drawingCollection);
+                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.MARKER, drawingOptions.markerSymbol, drawingCollection,true);
+                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.POLYLINE, drawingOptions.lineSymbol, drawingCollection,false);
                                         break;
                                     case MARKER:
-                                        commonController.drawTemporaryGeometry(mainMapView, drawingType, drawingOptions.markerSymbol, drawingCollection);
+                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.MARKER, drawingOptions.markerSymbol, drawingCollection,true);
                                         break;
                                 }
                                 break;
@@ -388,11 +387,11 @@ public class AppController {
     }
 
     public void onExit(ActionEvent actionEvent) {
-        if (Objects.nonNull(primaryStage.getOnCloseRequest())) {
-            primaryStage.getOnCloseRequest().handle(new WindowEvent(primaryStage, WindowEvent.WINDOW_CLOSE_REQUEST));
+        if (Objects.nonNull(parentStage.getOnCloseRequest())) {
+            parentStage.getOnCloseRequest().handle(new WindowEvent(parentStage, WindowEvent.WINDOW_CLOSE_REQUEST));
         }
-        primaryStage.onHiddenProperty().addListener((observableValue, windowEventEventHandler, t1) -> System.out.println(222));
-        primaryStage.close();
+        parentStage.onHiddenProperty().addListener((observableValue, windowEventEventHandler, t1) -> System.out.println(222));
+        parentStage.close();
     }
 
     public void onZoomIn(ActionEvent actionEvent) {
@@ -494,10 +493,11 @@ public class AppController {
                 DrawController drawController = fxmlLoader.getController();
                 drawController.setAppController(this);
                 Stage drawGeometryStage = new Stage();
+                drawController.setParentStage(drawGeometryStage);
                 drawGeometryStage.setScene(new Scene(pane));
                 drawGeometryStage.setTitle("Draw");
                 drawGeometryStage.setResizable(false);
-                drawGeometryStage.setOnCloseRequest(windowEvent -> runtimeStages.remove(RuntimeStageType.CLICK_QUERY));
+                drawGeometryStage.setOnCloseRequest(windowEvent -> runtimeStages.remove(RuntimeStageType.DRAW));
                 drawGeometryStage.show();
                 runtimeStages.put(RuntimeStageType.DRAW, drawGeometryStage);
             } catch (IOException e) {
@@ -513,15 +513,15 @@ public class AppController {
     }
 
     public void onLoadShapefile(ActionEvent actionEvent) {
-        commonController.loadShapefile(primaryStage, mainMapView);
+        commonController.loadShapefile(parentStage, mainMapView);
     }
 
     public void onLoadGeoDatabase(ActionEvent actionEvent) {
-        commonController.loadGeoDatabase(primaryStage, mainMapView);
+        commonController.loadGeoDatabase(parentStage, mainMapView);
     }
 
     public void onLoadRaster(ActionEvent actionEvent) {
-        commonController.loadRaster(primaryStage, mainMapView);
+        commonController.loadRaster(parentStage, mainMapView);
     }
 
     public void onShowCellOut(ActionEvent actionEvent) {
