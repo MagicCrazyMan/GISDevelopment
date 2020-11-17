@@ -12,7 +12,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 import javafx.util.StringConverter;
 
 import java.util.HashMap;
@@ -152,7 +151,7 @@ public class DrawOptionsController extends AController {
         polygonOutlineStyleChoiceBox.getItems().addAll(SimpleLineSymbol.Style.values());
         polygonOutlineSizeSlider.valueProperty().addListener((observableValue, number, t1) -> polylineOutlineSizeLabel.setText(String.format("%d px", t1.intValue())));
         polygonFillStyleListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        polygonFillStyleListView.setCellFactory(styleListView -> new FillCell());
+        polygonFillStyleListView.setCellFactory(styleListView -> new FillStyleCell());
         polygonFillStyleListView.getItems().addAll(SimpleFillSymbol.Style.values());
 
         // init scene responsive scene size
@@ -205,7 +204,7 @@ public class DrawOptionsController extends AController {
         );
     }
 
-    public static class FillCell extends ListCell<SimpleFillSymbol.Style> {
+    public static class FillStyleCell extends ListCell<SimpleFillSymbol.Style> {
         final static Map<SimpleFillSymbol.Style, String> imagesMap = new HashMap<>();
         final static Map<SimpleFillSymbol.Style, Image> imagesLoadedMap = new HashMap<>();
 
