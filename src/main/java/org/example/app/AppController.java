@@ -68,7 +68,7 @@ public class AppController extends AController{
     }
 
     public enum DrawingType {
-        MARKER, POLYLINE, POLYGON
+        MARKER, POLYLINE, POLYGON, NULL
     }
 
     public static class DrawingOptions {
@@ -111,7 +111,7 @@ public class AppController extends AController{
     ClickBehaviours clickBehaviour = ClickBehaviours.NULL;
     DrawingOptions drawingOptions;
     PointCollection drawingCollection;
-    DrawingType drawingType = DrawingType.MARKER;
+    DrawingType drawingType = DrawingType.NULL;
 
     @FXML
     public void initialize() {

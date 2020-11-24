@@ -25,26 +25,36 @@ public class DrawController extends AController {
     }
 
     public void onDrawPoint(ActionEvent actionEvent) {
-        appController.clickBehaviour = AppController.ClickBehaviours.DRAWING;
+        System.out.println(appController.drawingType);
         if (!appController.drawingType.equals(AppController.DrawingType.MARKER)) {
+            appController.clickBehaviour = AppController.ClickBehaviours.DRAWING;
             commonController.clearTemporaryGeometry(appController.mainMapView, appController.drawingCollection);
             appController.drawingType = AppController.DrawingType.MARKER;
+        } else {
+            appController.clickBehaviour = AppController.ClickBehaviours.NULL;
+            appController.drawingType = AppController.DrawingType.NULL;
         }
     }
 
     public void onDrawPolyline(ActionEvent actionEvent) {
-        appController.clickBehaviour = AppController.ClickBehaviours.DRAWING;
         if (!appController.drawingType.equals(AppController.DrawingType.POLYLINE)) {
+            appController.clickBehaviour = AppController.ClickBehaviours.DRAWING;
             commonController.clearTemporaryGeometry(appController.mainMapView, appController.drawingCollection);
             appController.drawingType = AppController.DrawingType.POLYLINE;
+        } else {
+            appController.clickBehaviour = AppController.ClickBehaviours.NULL;
+            appController.drawingType = AppController.DrawingType.NULL;
         }
     }
 
     public void onDrawPolygon(ActionEvent actionEvent) {
-        appController.clickBehaviour = AppController.ClickBehaviours.DRAWING;
         if (!appController.drawingType.equals(AppController.DrawingType.POLYGON)) {
+            appController.clickBehaviour = AppController.ClickBehaviours.DRAWING;
             commonController.clearTemporaryGeometry(appController.mainMapView, appController.drawingCollection);
             appController.drawingType = AppController.DrawingType.POLYGON;
+        } else {
+            appController.clickBehaviour = AppController.ClickBehaviours.NULL;
+            appController.drawingType = AppController.DrawingType.NULL;
         }
     }
 
