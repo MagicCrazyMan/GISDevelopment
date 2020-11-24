@@ -25,7 +25,6 @@ public class DrawController extends AController {
     }
 
     public void onDrawPoint(ActionEvent actionEvent) {
-        System.out.println(appController.drawingType);
         if (!appController.drawingType.equals(AppController.DrawingType.MARKER)) {
             appController.clickBehaviour = AppController.ClickBehaviours.DRAWING;
             commonController.clearTemporaryGeometry(appController.mainMapView, appController.drawingCollection);
@@ -63,9 +62,9 @@ public class DrawController extends AController {
     }
 
     public void onDrawOptions(ActionEvent actionEvent) {
+        FXMLLoader fxmlLoader = new FXMLLoader(Objects.requireNonNull(AppController.class.getResource("DrawOptions.fxml")));
         if (!appController.runtimeStages.containsKey(AppController.RuntimeStageType.DRAW_OPTIONS)) {
             try {
-                FXMLLoader fxmlLoader = new FXMLLoader(Objects.requireNonNull(AppController.class.getResource("DrawOptions.fxml")));
                 Pane pane = fxmlLoader.load();
                 DrawOptionsController controller = fxmlLoader.getController();
                 controller.setAppController(appController);

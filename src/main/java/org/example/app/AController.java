@@ -7,10 +7,10 @@ public abstract class AController {
     Stage parentStage;
 
     public void setParentStage(Stage stage) {
-        parentStage = stage;
+        this.parentStage = stage;
     }
 
     public Stage getParentStage() {
-        return parentStage;
+        return this.parentStage;
     }
 }

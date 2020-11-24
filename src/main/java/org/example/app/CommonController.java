@@ -16,6 +16,7 @@ import com.esri.arcgisruntime.symbology.*;
 import com.esri.arcgisruntime.util.ListenableList;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Alert;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import org.jetbrains.annotations.NotNull;
@@ -245,6 +246,22 @@ public class CommonController {
         });
     }
 
+    private void clickQueryFeaturesProcess(@NotNull FeatureLayer featureLayer, @NotNull Map<String, Object> attributes) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
+            stringBuilder.append(attribute.getKey()).append(": ").append(attribute.getValue()).append(System.lineSeparator());
+        }
+
+        // show message box
+        if (!stringBuilder.toString().isEmpty()) {
+            Alert messageBox = new Alert(Alert.AlertType.INFORMATION);
+            messageBox.setTitle(featureLayer.getName() + " fields information");
+            messageBox.setContentText(stringBuilder.toString());
+            messageBox.setResizable(false);
+            messageBox.show();
+        }
+    }
+
     private static final GraphicsOverlay temporaryGraphicOverlay = new GraphicsOverlay();
 
     public void drawTemporaryGeometry(@NotNull MapView parentView, @NotNull AppController.DrawingType drawingType, @NotNull Symbol symbol, @NotNull PointCollection points, boolean clearExisted) {
@@ -289,21 +306,6 @@ public class CommonController {
         }
     }
 
-    private void clickQueryFeaturesProcess(@NotNull FeatureLayer featureLayer, @NotNull Map<String, Object> attributes) {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
-            stringBuilder.append(attribute.getKey()).append(": ").append(attribute.getValue()).append(System.lineSeparator());
-        }
-
-        // show message box
-        if (!stringBuilder.toString().isEmpty()) {
-            Alert messageBox = new Alert(Alert.AlertType.INFORMATION);
-            messageBox.setTitle(featureLayer.getName() + " fields information");
-            messageBox.setContentText(stringBuilder.toString());
-            messageBox.setResizable(false);
-            messageBox.show();
-        }
-    }
 
     private File lastVisitedDir = null;
 
@@ -317,6 +319,23 @@ public class CommonController {
             lastVisitedDir = file.getParentFile();
         }
         return file;
+    }
+
+    public int color2int(Color color) {
+        int r = ((int) (color.getRed() * 255)) << 16;
+        int g = ((int) (color.getGreen() * 255)) << 8;
+        int b = ((int) (color.getBlue() * 255));
+        int a = ((int) (color.getOpacity() * 255)) << 24;
+        return (a | r | g | b);
+    }
+
+    public Color int2color(int color) {
+        return Color.rgb(
+                (color >>> 16) & 0xFF,
+                (color >>> 8) & 0xFF,
+                color & 0xFF,
+                ((color >>> 24) & 0xFF) / 255.0
+        );
     }
 }
 

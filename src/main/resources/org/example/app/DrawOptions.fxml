@@ -22,8 +22,13 @@
         <tabs>
           <Tab text="Marker Symbol">
                <content>
-                  <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" spacing="10.0">
+                  <VBox maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" spacing="10.0">
                      <children>
+                        <Label text="Marker">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                        </Label>
                         <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" style="-fx-background-color: transparent; -fx-padding: 0px;">
                            <items>
                               <Label text="Style: " />
@@ -40,6 +45,20 @@
                               <Label fx:id="markerSizeLabel" />
                            </items>
                         </ToolBar>
+                        <Separator prefWidth="200.0" />
+                        <Label text="Outline">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                        </Label>
+                        <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" style="-fx-background-color: transparent; -fx-padding: 0px;">
+                           <items>
+                              <Label text="Style: " />
+                              <ChoiceBox fx:id="markerOutlineStyleChoiceBox" minWidth="150.0" prefWidth="150.0" />
+                              <Label text="Color: " />
+                              <ColorPicker fx:id="markerOutlineColorPicker" />
+                           </items>
+                        </ToolBar>
                         <ToolBar nodeOrientation="RIGHT_TO_LEFT" style="-fx-background-color: transparent; -fx-padding: 0px;">
                            <items>
                               <Button fx:id="markerApplyBtn" mnemonicParsing="false" onAction="#onMarkerStyleApply" text="Apply" />
@@ -54,7 +73,7 @@
             </Tab>
           <Tab text="Polyline Symbol">
                <content>
-                  <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" spacing="10.0">
+                  <VBox maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" spacing="10.0">
                      <children>
                         <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" style="-fx-background-color: transparent; -fx-padding: 0px;">
                            <items>
@@ -102,7 +121,7 @@
             </Tab>
             <Tab text="Polygon Symbol">
               <content>
-                  <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" spacing="10.0">
+                  <VBox maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" spacing="10.0">
                      <padding>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                      </padding>

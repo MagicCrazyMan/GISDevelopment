@@ -40,32 +40,36 @@ public class DrawOptionsController extends AController {
     public Label polylineOutlineSizeLabel;
     public ColorPicker polygonFillColorPicker;
     public ListView<SimpleFillSymbol.Style> polygonFillStyleListView;
+    public ChoiceBox<SimpleLineSymbol.Style> markerOutlineStyleChoiceBox;
+    public ColorPicker markerOutlineColorPicker;
 
     private AppController appController;
-    private final CommonController commonController = new CommonController();
+    private CommonController commonController = new CommonController();
 
     public void setAppController(AppController appController) {
         this.appController = appController;
 
         // init marker symbol options from existed options
-        markerStyleChoiceBox.setValue(appController.drawingOptions.markerSymbol.getStyle());
-        markerSizeSlider.setValue(appController.drawingOptions.markerSymbol.getSize());
-        markerColorPicker.setValue(int2color(appController.drawingOptions.markerSymbol.getColor()));
+        markerStyleChoiceBox.setValue(appController.simpleSymbolContainer.markerSymbol.getStyle());
+        markerSizeSlider.setValue(appController.simpleSymbolContainer.markerSymbol.getSize());
+        markerColorPicker.setValue(commonController.int2color(appController.simpleSymbolContainer.markerSymbol.getColor()));
+        markerOutlineStyleChoiceBox.setValue(appController.simpleSymbolContainer.markerSymbol.getOutline().getStyle());
+        markerOutlineColorPicker.setValue(commonController.int2color(appController.simpleSymbolContainer.markerSymbol.getOutline().getColor()));
 
         // init polyline symbol options from existed options
-        polylineStyleChoiceBox.setValue(appController.drawingOptions.lineSymbol.getStyle());
-        polylineMarkerStyleChoiceBox.setValue(appController.drawingOptions.lineSymbol.getMarkerStyle());
-        polylineMarkerPlacementChoiceBox.setValue(appController.drawingOptions.lineSymbol.getMarkerPlacement());
-        polylineSizeSlider.setValue(appController.drawingOptions.lineSymbol.getWidth());
-        polylineColorPicker.setValue(int2color(appController.drawingOptions.lineSymbol.getColor()));
+        polylineStyleChoiceBox.setValue(appController.simpleSymbolContainer.lineSymbol.getStyle());
+        polylineMarkerStyleChoiceBox.setValue(appController.simpleSymbolContainer.lineSymbol.getMarkerStyle());
+        polylineMarkerPlacementChoiceBox.setValue(appController.simpleSymbolContainer.lineSymbol.getMarkerPlacement());
+        polylineSizeSlider.setValue(appController.simpleSymbolContainer.lineSymbol.getWidth());
+        polylineColorPicker.setValue(commonController.int2color(appController.simpleSymbolContainer.lineSymbol.getColor()));
 
         // init polygon symbol options from existed options
-        SimpleLineSymbol outlineSymbol = (SimpleLineSymbol) appController.drawingOptions.fillSymbol.getOutline();
+        SimpleLineSymbol outlineSymbol = (SimpleLineSymbol) appController.simpleSymbolContainer.fillSymbol.getOutline();
         polygonOutlineStyleChoiceBox.setValue(outlineSymbol.getStyle());
         polygonOutlineSizeSlider.setValue(outlineSymbol.getWidth());
-        polygonOutlineColorPicker.setValue(int2color(outlineSymbol.getColor()));
-        polygonFillColorPicker.setValue(int2color(appController.drawingOptions.fillSymbol.getColor()));
-        polygonFillStyleListView.getSelectionModel().select(appController.drawingOptions.fillSymbol.getStyle());
+        polygonOutlineColorPicker.setValue(commonController.int2color(outlineSymbol.getColor()));
+        polygonFillColorPicker.setValue(commonController.int2color(appController.simpleSymbolContainer.fillSymbol.getColor()));
+        polygonFillStyleListView.getSelectionModel().select(appController.simpleSymbolContainer.fillSymbol.getStyle());
     }
 
     @Override
@@ -96,6 +100,18 @@ public class DrawOptionsController extends AController {
         });
         markerStyleChoiceBox.getItems().addAll(SimpleMarkerSymbol.Style.values());
         markerSizeSlider.valueProperty().addListener((observableValue, number, t1) -> markerSizeLabel.setText(String.format("%d px", t1.intValue())));
+        markerOutlineStyleChoiceBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(SimpleLineSymbol.Style markerStyle) {
+                return markerStyle.name();
+            }
+
+            @Override
+            public SimpleLineSymbol.Style fromString(String s) {
+                return SimpleLineSymbol.Style.valueOf(s);
+            }
+        });
+        markerOutlineStyleChoiceBox.getItems().addAll(SimpleLineSymbol.Style.values());
 
         // init polyline
         polylineMarkerStyleChoiceBox.setConverter(new StringConverter<>() {
@@ -165,43 +181,28 @@ public class DrawOptionsController extends AController {
     }
 
     public void onMarkerStyleApply(ActionEvent actionEvent) {
-        appController.drawingOptions.markerSymbol.setSize((float) markerSizeSlider.getValue());
-        appController.drawingOptions.markerSymbol.setStyle(markerStyleChoiceBox.getValue());
-        appController.drawingOptions.markerSymbol.setColor(color2int(markerColorPicker.getValue()));
+        appController.simpleSymbolContainer.markerSymbol.setSize((float) markerSizeSlider.getValue());
+        appController.simpleSymbolContainer.markerSymbol.setStyle(markerStyleChoiceBox.getValue());
+        appController.simpleSymbolContainer.markerSymbol.setColor(commonController.color2int(markerColorPicker.getValue()));
+        appController.simpleSymbolContainer.markerSymbol.getOutline().setColor(commonController.color2int(markerOutlineColorPicker.getValue()));
+        appController.simpleSymbolContainer.markerSymbol.getOutline().setStyle(markerOutlineStyleChoiceBox.getValue());
     }
 
     public void onPolylineStyleApply(ActionEvent actionEvent) {
-        appController.drawingOptions.lineSymbol.setMarkerStyle(polylineMarkerStyleChoiceBox.getValue());
-        appController.drawingOptions.lineSymbol.setMarkerPlacement(polylineMarkerPlacementChoiceBox.getValue());
-        appController.drawingOptions.lineSymbol.setStyle(polylineStyleChoiceBox.getValue());
-        appController.drawingOptions.lineSymbol.setColor(color2int(polylineColorPicker.getValue()));
-        appController.drawingOptions.lineSymbol.setWidth((float) polylineSizeSlider.getValue());
+        appController.simpleSymbolContainer.lineSymbol.setMarkerStyle(polylineMarkerStyleChoiceBox.getValue());
+        appController.simpleSymbolContainer.lineSymbol.setMarkerPlacement(polylineMarkerPlacementChoiceBox.getValue());
+        appController.simpleSymbolContainer.lineSymbol.setStyle(polylineStyleChoiceBox.getValue());
+        appController.simpleSymbolContainer.lineSymbol.setColor(commonController.color2int(polylineColorPicker.getValue()));
+        appController.simpleSymbolContainer.lineSymbol.setWidth((float) polylineSizeSlider.getValue());
     }
 
     public void onPolygonStyleApply(ActionEvent actionEvent) {
-        SimpleLineSymbol outlineSymbol = (SimpleLineSymbol) appController.drawingOptions.fillSymbol.getOutline();
+        SimpleLineSymbol outlineSymbol = (SimpleLineSymbol) appController.simpleSymbolContainer.fillSymbol.getOutline();
         outlineSymbol.setStyle(polygonOutlineStyleChoiceBox.getValue());
-        outlineSymbol.setColor(color2int(polygonOutlineColorPicker.getValue()));
+        outlineSymbol.setColor(commonController.color2int(polygonOutlineColorPicker.getValue()));
         outlineSymbol.setWidth((float) polygonOutlineSizeSlider.getValue());
-        appController.drawingOptions.fillSymbol.setStyle(polygonFillStyleListView.getSelectionModel().getSelectedItem());
-        appController.drawingOptions.fillSymbol.setColor(color2int(polygonFillColorPicker.getValue()));
-    }
-
-    private int color2int(Color color) {
-        int r = ((int) (color.getRed() * 255)) << 16;
-        int g = ((int) (color.getGreen() * 255)) << 8;
-        int b = ((int) (color.getBlue() * 255));
-        int a = ((int) (color.getOpacity() * 255)) << 24;
-        return (a | r | g | b);
-    }
-
-    private Color int2color(int color) {
-        return Color.rgb(
-                (color >>> 16) & 0xFF,
-                (color >>> 8) & 0xFF,
-                color & 0xFF,
-                ((color >>> 24) & 0xFF) / 255.0
-        );
+        appController.simpleSymbolContainer.fillSymbol.setStyle(polygonFillStyleListView.getSelectionModel().getSelectedItem());
+        appController.simpleSymbolContainer.fillSymbol.setColor(commonController.color2int(polygonFillColorPicker.getValue()));
     }
 
     public static class FillStyleCell extends ListCell<SimpleFillSymbol.Style> {

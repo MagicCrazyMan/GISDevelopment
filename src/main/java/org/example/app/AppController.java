@@ -15,6 +15,7 @@ import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.*;
@@ -31,7 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class AppController extends AController{
+public class AppController extends AController {
     public StackPane eagleMapPane;
     public StackPane mainMapPane;
     public VBox layerPane;
@@ -71,15 +72,20 @@ public class AppController extends AController{
         MARKER, POLYLINE, POLYGON, NULL
     }
 
-    public static class DrawingOptions {
+    public static class SimpleSymbolContainer {
 
         final SimpleMarkerSymbol markerSymbol = new SimpleMarkerSymbol();
         final SimpleLineSymbol lineSymbol = new SimpleLineSymbol();
         final SimpleFillSymbol fillSymbol = new SimpleFillSymbol();
 
-        public DrawingOptions() {
+        public SimpleSymbolContainer() {
             // default style
+            SimpleLineSymbol markerOutline = new SimpleLineSymbol();
+            markerOutline.setStyle(SimpleLineSymbol.Style.SOLID);
+            markerOutline.setWidth(2);
+            markerOutline.setColor(0xFF00FFFF);
             markerSymbol.setStyle(SimpleMarkerSymbol.Style.CIRCLE);
+            markerSymbol.setOutline(markerOutline);
             markerSymbol.setSize(5);
             markerSymbol.setColor(0xFF0000FF);
 
@@ -89,15 +95,15 @@ public class AppController extends AController{
             lineSymbol.setWidth(2);
             lineSymbol.setColor(0xFF0000FF);
 
-            SimpleLineSymbol outlineSymbol = new SimpleLineSymbol();
-            outlineSymbol.setStyle(SimpleLineSymbol.Style.SOLID);
-            outlineSymbol.setMarkerStyle(SimpleLineSymbol.MarkerStyle.NONE);
-            outlineSymbol.setMarkerPlacement(SimpleLineSymbol.MarkerPlacement.BEGIN);
-            outlineSymbol.setWidth(2);
-            outlineSymbol.setColor(0xFF0000FF);
+            SimpleLineSymbol polygonOutlineSymbol = new SimpleLineSymbol();
+            polygonOutlineSymbol.setStyle(SimpleLineSymbol.Style.SOLID);
+            polygonOutlineSymbol.setMarkerStyle(SimpleLineSymbol.MarkerStyle.NONE);
+            polygonOutlineSymbol.setMarkerPlacement(SimpleLineSymbol.MarkerPlacement.BEGIN);
+            polygonOutlineSymbol.setWidth(2);
+            polygonOutlineSymbol.setColor(0xFF0000FF);
             fillSymbol.setStyle(SimpleFillSymbol.Style.SOLID);
             fillSymbol.setColor(0xFFFFFFFF);
-            fillSymbol.setOutline(outlineSymbol);
+            fillSymbol.setOutline(polygonOutlineSymbol);
         }
     }
 
@@ -109,7 +115,7 @@ public class AppController extends AController{
     Map<RuntimeStageType, Stage> runtimeStages = new HashMap<>();
 
     ClickBehaviours clickBehaviour = ClickBehaviours.NULL;
-    DrawingOptions drawingOptions;
+    SimpleSymbolContainer simpleSymbolContainer;
     PointCollection drawingCollection;
     DrawingType drawingType = DrawingType.NULL;
 
@@ -170,6 +176,36 @@ public class AppController extends AController{
                                     MenuItem zoomTo = new MenuItem("Zoom To");
                                     MenuItem remove = new MenuItem("Remove");
                                     zoomTo.setOnAction(actionEvent -> mainMapView.setViewpointGeometryAsync(layer.getFullExtent(), 50));
+                                    if (layer instanceof FeatureLayer) {
+                                        MenuItem renderer = new MenuItem("Renderer");
+                                        renderer.setOnAction(new EventHandler<>() {
+                                            final FXMLLoader fxmlLoader = new FXMLLoader(AppController.class.getResource("Renderer.fxml"));
+                                            Stage stage;
+
+                                            @Override
+                                            public void handle(ActionEvent actionEvent) {
+                                                try {
+                                                    if (Objects.isNull(stage)) {
+                                                        Pane pane = fxmlLoader.load();
+                                                        RendererController controller = fxmlLoader.getController();
+                                                        stage = new Stage();
+                                                        controller.setFeatureLayer((FeatureLayer) layer);
+                                                        controller.setParentStage(stage);
+                                                        stage.setTitle("Renderer");
+                                                        stage.setScene(new Scene(pane));
+                                                        stage.setResizable(false);
+                                                        stage.setOnCloseRequest(windowEvent -> stage = null);
+                                                        stage.showAndWait();
+                                                    } else {
+                                                        stage.toFront();
+                                                    }
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        });
+                                        contextMenu.getItems().add(renderer);
+                                    }
                                     remove.setOnAction(actionEvent -> mainMap.getOperationalLayers().remove(layer));
 
                                     contextMenu.getItems().addAll(zoomTo, remove);
@@ -345,15 +381,15 @@ public class AppController extends AController{
                                 drawingCollection.add(mapPoint);
                                 switch (drawingType) {
                                     case POLYGON:
-                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.MARKER, drawingOptions.markerSymbol, drawingCollection,true);
-                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.POLYGON, drawingOptions.fillSymbol, drawingCollection,false);
+                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.MARKER, simpleSymbolContainer.markerSymbol, drawingCollection, true);
+                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.POLYGON, simpleSymbolContainer.fillSymbol, drawingCollection, false);
                                         break;
                                     case POLYLINE:
-                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.MARKER, drawingOptions.markerSymbol, drawingCollection,true);
-                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.POLYLINE, drawingOptions.lineSymbol, drawingCollection,false);
+                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.MARKER, simpleSymbolContainer.markerSymbol, drawingCollection, true);
+                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.POLYLINE, simpleSymbolContainer.lineSymbol, drawingCollection, false);
                                         break;
                                     case MARKER:
-                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.MARKER, drawingOptions.markerSymbol, drawingCollection,true);
+                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.MARKER, simpleSymbolContainer.markerSymbol, drawingCollection, true);
                                         break;
                                 }
                                 break;
@@ -485,7 +521,7 @@ public class AppController extends AController{
     }
 
     public void onDraw(ActionEvent actionEvent) {
-        drawingOptions = new DrawingOptions();
+        simpleSymbolContainer = new SimpleSymbolContainer();
         if (!runtimeStages.containsKey(RuntimeStageType.DRAW)) {
             try {
                 FXMLLoader fxmlLoader = new FXMLLoader(Objects.requireNonNull(AppController.class.getResource("Draw.fxml")));
