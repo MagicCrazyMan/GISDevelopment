@@ -62,13 +62,6 @@
                      <children>
                         <StackPane fx:id="mainMapPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="750.0" minWidth="1100.0" prefHeight="750.0" prefWidth="1100.0" StackPane.alignment="TOP_LEFT" />
                         <HBox fillHeight="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" StackPane.alignment="TOP_LEFT">
-                           <children>
-                              <ToolBar style="-fx-background-color: transparent; -fx-padding: 0px;">
-                                 <items>
-                                  <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#onRefresh" text="Refresh Button" />
-                                 </items>
-                              </ToolBar>
-                           </children>
                            <StackPane.margin>
                               <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                            </StackPane.margin>

@@ -3,9 +3,12 @@ package org.example.app;
 import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.PointCollection;
+import com.esri.arcgisruntime.geometry.SpatialReference;
 import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.layers.Layer;
 import com.esri.arcgisruntime.loadable.LoadStatus;
+import com.esri.arcgisruntime.loadable.LoadStatusChangedEvent;
+import com.esri.arcgisruntime.loadable.LoadStatusChangedListener;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.LayerList;
@@ -37,7 +40,6 @@ public class AppController extends AController {
     public StackPane mainMapPane;
     public VBox layerPane;
     public ScrollPane layerScrollPane;
-    public Button refreshButton;
     public Button loadShapefileBtn;
     public Button loadGeoDatabaseBtn;
     public Button loadOnlineDataBtn;
@@ -151,11 +153,30 @@ public class AppController extends AController {
         mainMapView = new MapView();
         mainMapView.setViewOrder(-1);
         mainMap = new ArcGISMap(Basemap.createImagery());
-        mainMap.addDoneLoadingListener(() -> {
-            if (mainMap.getLoadStatus().equals(LoadStatus.LOADED)) {
-                drawingCollection = new PointCollection(mainMap.getSpatialReference());
+        mainMap.addLoadStatusChangedListener(new LoadStatusChangedListener() {
+            Timer timer;
+            @Override
+            public void loadStatusChanged(LoadStatusChangedEvent loadStatusChangedEvent) {
+                if (loadStatusChangedEvent.getNewLoadStatus().equals(LoadStatus.LOADING)) {
+                    timer = new Timer();
+                    // 10s内不能加载在线底图，就使用空白底图
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            mainMap.setBasemap(new Basemap());
+                            drawingCollection = new PointCollection(SpatialReference.create(3857));
+                            basemapChoiceBox.setDisable(true);
+                        }
+                    }, 10 * 1000);
+                } else if (loadStatusChangedEvent.getNewLoadStatus().equals(LoadStatus.LOADED)) {
+                    timer.cancel();
+                    drawingCollection = new PointCollection(mainMap.getSpatialReference());
+                } else {
+                    timer.cancel();
+                }
             }
         });
+
         // add listener, any layer changed will notify layer manager
         mainMap.getOperationalLayers().addListChangedListener(listChangedEvent -> {
             if (Objects.nonNull(layerPane)) {
@@ -542,10 +563,6 @@ public class AppController extends AController {
         } else {
             runtimeStages.get(RuntimeStageType.DRAW).toFront();
         }
-    }
-
-    public void onRefresh(ActionEvent actionEvent) {
-        mainMap.loadAsync();
     }
 
     public void onLoadShapefile(ActionEvent actionEvent) {
