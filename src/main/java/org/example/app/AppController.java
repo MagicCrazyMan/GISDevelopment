@@ -155,6 +155,7 @@ public class AppController extends AController {
         mainMap = new ArcGISMap(Basemap.createImagery());
         mainMap.addLoadStatusChangedListener(new LoadStatusChangedListener() {
             Timer timer;
+
             @Override
             public void loadStatusChanged(LoadStatusChangedEvent loadStatusChangedEvent) {
                 if (loadStatusChangedEvent.getNewLoadStatus().equals(LoadStatus.LOADING)) {
@@ -193,44 +194,46 @@ public class AppController extends AController {
                                 radioButton.setSelected(true);
                                 radioButton.selectedProperty().addListener((observableValue, aBoolean, t1) -> layer.setVisible(t1));
                                 radioButton.setOnContextMenuRequested(contextMenuEvent -> {
-                                    ContextMenu contextMenu = new ContextMenu();
-                                    MenuItem zoomTo = new MenuItem("Zoom To");
-                                    MenuItem remove = new MenuItem("Remove");
-                                    zoomTo.setOnAction(actionEvent -> mainMapView.setViewpointGeometryAsync(layer.getFullExtent(), 50));
-                                    if (layer instanceof FeatureLayer) {
-                                        MenuItem renderer = new MenuItem("Renderer");
-                                        renderer.setOnAction(new EventHandler<>() {
-                                            final FXMLLoader fxmlLoader = new FXMLLoader(AppController.class.getResource("Renderer.fxml"));
-                                            Stage stage;
+                                    if (radioButton.contextMenuProperty().isNull().get()) {
+                                        ContextMenu contextMenu = new ContextMenu();
+                                        MenuItem zoomTo = new MenuItem("Zoom To");
+                                        MenuItem remove = new MenuItem("Remove");
+                                        zoomTo.setOnAction(actionEvent -> mainMapView.setViewpointGeometryAsync(layer.getFullExtent(), 50));
+                                        if (layer instanceof FeatureLayer) {
+                                            MenuItem renderer = new MenuItem("Renderer");
+                                            renderer.setOnAction(new EventHandler<>() {
+                                                final FXMLLoader fxmlLoader = new FXMLLoader(AppController.class.getResource("Renderer.fxml"));
+                                                Stage stage;
 
-                                            @Override
-                                            public void handle(ActionEvent actionEvent) {
-                                                try {
-                                                    if (Objects.isNull(stage)) {
-                                                        Pane pane = fxmlLoader.load();
-                                                        RendererController controller = fxmlLoader.getController();
-                                                        stage = new Stage();
-                                                        controller.setFeatureLayer((FeatureLayer) layer);
-                                                        controller.setParentStage(stage);
-                                                        stage.setTitle("Renderer");
-                                                        stage.setScene(new Scene(pane));
-                                                        stage.setResizable(false);
-                                                        stage.setOnCloseRequest(windowEvent -> stage = null);
-                                                        stage.showAndWait();
-                                                    } else {
-                                                        stage.toFront();
+                                                @Override
+                                                public void handle(ActionEvent actionEvent) {
+                                                    try {
+                                                        if (Objects.isNull(stage)) {
+                                                            Pane pane = fxmlLoader.load();
+                                                            RendererController controller = fxmlLoader.getController();
+                                                            stage = new Stage();
+                                                            controller.setFeatureLayer((FeatureLayer) layer);
+                                                            controller.setParentStage(stage);
+                                                            stage.setTitle("Renderer");
+                                                            stage.setScene(new Scene(pane));
+                                                            stage.setResizable(false);
+                                                            stage.setOnCloseRequest(windowEvent -> stage = null);
+                                                            stage.showAndWait();
+                                                        } else {
+                                                            stage.toFront();
+                                                        }
+                                                    } catch (IOException e) {
+                                                        e.printStackTrace();
                                                     }
-                                                } catch (IOException e) {
-                                                    e.printStackTrace();
                                                 }
-                                            }
-                                        });
-                                        contextMenu.getItems().add(renderer);
-                                    }
-                                    remove.setOnAction(actionEvent -> mainMap.getOperationalLayers().remove(layer));
+                                            });
+                                            contextMenu.getItems().add(renderer);
+                                        }
+                                        remove.setOnAction(actionEvent -> mainMap.getOperationalLayers().remove(layer));
 
-                                    contextMenu.getItems().addAll(zoomTo, remove);
-                                    contextMenu.show(radioButton, contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
+                                        contextMenu.getItems().addAll(zoomTo, remove);
+                                        radioButton.contextMenuProperty().set(contextMenu);
+                                    }
                                 });
                                 layerPane.getChildren().add(radioButton);
                             }
