@@ -127,10 +127,16 @@
                            <font>
                               <Font name="System Bold" size="14.0" />
                            </font></Label>
+                        <HBox spacing="5.0">
+                           <children>
+                              <Button mnemonicParsing="false" onAction="#onUniqueRendererLoadField" text="Load Field" />
+                              <ChoiceBox fx:id="uniqueRendererFieldsChoiceBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+                           </children>
+                        </HBox>
                         <TableView fx:id="uniqueRendererFieldsTableView" prefHeight="200.0" prefWidth="200.0">
                           <columns>
-                            <TableColumn fx:id="uniqueRendererFeaturesColumn" prefWidth="75.0" text="Features" />
-                            <TableColumn fx:id="uniqueRendererSymbolColumn" maxWidth="100.0" minWidth="100.0" prefWidth="100.0" text="Symbol" />
+                            <TableColumn fx:id="uniqueRendererValuesColumn" prefWidth="200.0" text="Values" />
+                            <TableColumn fx:id="uniqueRendererSymbolColumn" prefWidth="100.0" text="Symbol" />
                           </columns>
                            <columnResizePolicy>
                               <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
@@ -138,7 +144,7 @@
                         </TableView>
                         <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" nodeOrientation="RIGHT_TO_LEFT" spacing="5.0">
                            <children>
-                              <Button mnemonicParsing="false" text="Apply" />
+                              <Button mnemonicParsing="false" onAction="#onUniqueRendererApply" text="Apply" />
                            </children>
                         </HBox>
                      </children>

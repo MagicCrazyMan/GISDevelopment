@@ -292,7 +292,6 @@ public class CommonController {
             }
         }
 
-
         ListenableList<GraphicsOverlay> graphicsOverlays = parentView.getGraphicsOverlays();
         if (!graphicsOverlays.contains(temporaryGraphicOverlay)) { // if graphic overlay is not included in map view ,add it
             graphicsOverlays.add(temporaryGraphicOverlay);

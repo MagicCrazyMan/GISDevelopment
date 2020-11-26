@@ -202,18 +202,18 @@ public class AppController extends AController {
                                         if (layer instanceof FeatureLayer) {
                                             MenuItem renderer = new MenuItem("Renderer");
                                             renderer.setOnAction(new EventHandler<>() {
-                                                final FXMLLoader fxmlLoader = new FXMLLoader(AppController.class.getResource("Renderer.fxml"));
                                                 Stage stage;
-
                                                 @Override
                                                 public void handle(ActionEvent actionEvent) {
                                                     try {
                                                         if (Objects.isNull(stage)) {
+                                                            FXMLLoader fxmlLoader = new FXMLLoader(AppController.class.getResource("Renderer.fxml"));
                                                             Pane pane = fxmlLoader.load();
                                                             RendererController controller = fxmlLoader.getController();
                                                             stage = new Stage();
                                                             controller.setFeatureLayer((FeatureLayer) layer);
                                                             controller.setParentStage(stage);
+                                                            controller.setParentMapView(mainMapView);
                                                             stage.setTitle("Renderer");
                                                             stage.setScene(new Scene(pane));
                                                             stage.setResizable(false);
