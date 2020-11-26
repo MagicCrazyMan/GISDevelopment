@@ -201,7 +201,7 @@ public class CommonController {
         });
     }
 
-    public void clickQuery(@NotNull MapView parentView, @NotNull FeatureLayer featureLayer, @NotNull Point point) {
+    public void clickQuery(@NotNull MapView parentView, @NotNull FeatureLayer featureLayer, @NotNull Point point, boolean showMessage) {
         final double error = 3; // set error
         double mapError = error * parentView.getUnitsPerDensityIndependentPixel(); // convert error from pixels to specified units
         if (parentView.isWrapAroundEnabled()) { // if map is warp around, geometry should be normalized firstly
@@ -220,8 +220,10 @@ public class CommonController {
                 EnvelopeBuilder envelopeBuilder = new EnvelopeBuilder(results.get().getSpatialReference());
                 results.get().iterator().forEachRemaining(feature -> {
                     envelopeBuilder.unionOf(feature.getGeometry().getExtent());
-                    // iterate all features and get all fields and its values
-                    clickQueryFeaturesProcess(featureLayer, feature.getAttributes());
+                    if(showMessage) {
+                        // iterate all features and get all fields and its values
+                        clickQueryFeaturesProcess(featureLayer, feature.getAttributes());
+                    }
                 });
                 parentView.setViewpointGeometryAsync(envelopeBuilder.toGeometry(), 50);
             } catch (InterruptedException | ExecutionException e) {

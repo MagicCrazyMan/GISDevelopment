@@ -66,7 +66,8 @@ public class AppController extends AController {
     public enum ClickBehaviours {
         NULL,
         SELECTED_FEATURE,
-        IDENTITY,
+        SELECTED_FEATURE_AND_QUERY,
+        IDENTITY_QUERY,
         DRAWING,
     }
 
@@ -116,7 +117,7 @@ public class AppController extends AController {
     private final CommonController commonController = new CommonController();
     Map<RuntimeStageType, Stage> runtimeStages = new HashMap<>();
 
-    ClickBehaviours clickBehaviour = ClickBehaviours.NULL;
+    ClickBehaviours clickBehaviour = ClickBehaviours.SELECTED_FEATURE;
     SimpleSymbolContainer simpleSymbolContainer;
     PointCollection drawingCollection;
     DrawingType drawingType = DrawingType.NULL;
@@ -389,7 +390,7 @@ public class AppController extends AController {
                     Point mapPoint = mainMapView.screenToLocation(screenPoint);
                     if (Objects.nonNull(mapPoint)) {
                         switch (clickBehaviour) {
-                            case IDENTITY: {
+                            case IDENTITY_QUERY: {
                                 if (mainMap.getOperationalLayers().size() > 0) {
                                     commonController.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), screenPoint);
                                 }
@@ -397,7 +398,13 @@ public class AppController extends AController {
                             }
                             case SELECTED_FEATURE: {
                                 if (mainMap.getOperationalLayers().size() > 0) {
-                                    commonController.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), mapPoint);
+                                    commonController.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), mapPoint,false);
+                                }
+                                break;
+                            }
+                            case SELECTED_FEATURE_AND_QUERY:{
+                                if (mainMap.getOperationalLayers().size() > 0) {
+                                    commonController.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), mapPoint,true);
                                 }
                                 break;
                             }
@@ -519,15 +526,18 @@ public class AppController extends AController {
             ToolBar toolBar = new ToolBar();
             RadioButton selectFeatureBtn = new RadioButton("Select Feature");
             RadioButton identityBtn = new RadioButton("Identity");
-            clickBehaviour = ClickBehaviours.SELECTED_FEATURE;
+            ToggleGroup toggleGroup = new ToggleGroup();
+            identityBtn.setToggleGroup(toggleGroup);
+            selectFeatureBtn.setToggleGroup(toggleGroup);
+            clickBehaviour = ClickBehaviours.SELECTED_FEATURE_AND_QUERY;
             selectFeatureBtn.setSelected(true); // select feature is default
             selectFeatureBtn.setOnAction(actionEvent1 -> {
                 identityBtn.setSelected(false);
-                clickBehaviour = ClickBehaviours.SELECTED_FEATURE;
+                clickBehaviour = ClickBehaviours.SELECTED_FEATURE_AND_QUERY;
             });
             identityBtn.setOnAction(actionEvent1 -> {
                 selectFeatureBtn.setSelected(false);
-                clickBehaviour = ClickBehaviours.IDENTITY;
+                clickBehaviour = ClickBehaviours.IDENTITY_QUERY;
             });
             toolBar.getItems().addAll(selectFeatureBtn, identityBtn);
             stackPane.getChildren().add(toolBar);
@@ -536,7 +546,10 @@ public class AppController extends AController {
             clickQueryStage.setScene(new Scene(stackPane));
             clickQueryStage.setResizable(false);
             clickQueryStage.setTitle("Click Query");
-            clickQueryStage.setOnCloseRequest(windowEvent -> runtimeStages.remove(RuntimeStageType.CLICK_QUERY));
+            clickQueryStage.setOnCloseRequest(windowEvent -> {
+                runtimeStages.remove(RuntimeStageType.CLICK_QUERY);
+                clickBehaviour = ClickBehaviours.SELECTED_FEATURE;
+            });
             clickQueryStage.show();
             runtimeStages.put(RuntimeStageType.CLICK_QUERY, clickQueryStage);
         } else {
