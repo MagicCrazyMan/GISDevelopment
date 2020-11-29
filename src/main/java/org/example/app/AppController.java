@@ -25,6 +25,7 @@ import javafx.geometry.*;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -376,66 +377,67 @@ public class AppController extends AController {
         onlineDataTypeChoiceBox.getSelectionModel().select(OnlineDataType.ESRI_SERVICE);
     }
 
-
     boolean isDragging = false;
 
     private void initMapViewClicker() {
         mainMapView.setOnDragDetected(mouseEvent -> isDragging = true);
         mainMapView.setOnMouseClicked(mouseEvent -> {
-            if (mouseEvent.getClickCount() == 1) {
-                if (!isDragging) {
-                    Point2D screenPoint = new Point2D(mouseEvent.getX(), mouseEvent.getY());
-                    Point mapPoint = mainMapView.screenToLocation(screenPoint);
-                    if (Objects.nonNull(mapPoint)) {
-                        switch (clickBehaviour) {
-                            case IDENTITY_QUERY: {
-                                if (mainMap.getOperationalLayers().size() > 0) {
-                                    commonController.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), screenPoint);
+            if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+                if (mouseEvent.getClickCount() == 1) {
+                    if (!isDragging) {
+                        Point2D screenPoint = new Point2D(mouseEvent.getX(), mouseEvent.getY());
+                        Point mapPoint = mainMapView.screenToLocation(screenPoint);
+                        if (Objects.nonNull(mapPoint)) {
+                            switch (clickBehaviour) {
+                                case IDENTITY_QUERY: {
+                                    if (mainMap.getOperationalLayers().size() > 0) {
+                                        commonController.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), screenPoint);
+                                    }
+                                    break;
                                 }
-                                break;
-                            }
-                            case SELECTED_FEATURE: {
-                                if (mainMap.getOperationalLayers().size() > 0) {
-                                    commonController.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), mapPoint,false);
+                                case SELECTED_FEATURE: {
+                                    if (mainMap.getOperationalLayers().size() > 0) {
+                                        commonController.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), mapPoint, false);
+                                    }
+                                    break;
                                 }
-                                break;
-                            }
-                            case SELECTED_FEATURE_AND_QUERY:{
-                                if (mainMap.getOperationalLayers().size() > 0) {
-                                    commonController.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), mapPoint,true);
+                                case SELECTED_FEATURE_AND_QUERY: {
+                                    if (mainMap.getOperationalLayers().size() > 0) {
+                                        commonController.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), mapPoint, true);
+                                    }
+                                    break;
                                 }
-                                break;
-                            }
-                            case DRAWING: {
-                                drawingCollection.add(mapPoint);
-                                switch (drawingType) {
-                                    case POLYGON:
-                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.MARKER, simpleSymbolContainer.markerSymbol, drawingCollection, true);
-                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.POLYGON, simpleSymbolContainer.fillSymbol, drawingCollection, false);
-                                        break;
-                                    case POLYLINE:
-                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.MARKER, simpleSymbolContainer.markerSymbol, drawingCollection, true);
-                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.POLYLINE, simpleSymbolContainer.lineSymbol, drawingCollection, false);
-                                        break;
-                                    case MARKER:
-                                        commonController.drawTemporaryGeometry(mainMapView, DrawingType.MARKER, simpleSymbolContainer.markerSymbol, drawingCollection, true);
-                                        break;
+                                case DRAWING: {
+                                    drawingCollection.add(mapPoint);
+                                    switch (drawingType) {
+                                        case POLYGON:
+                                            commonController.drawTemporaryGeometry(mainMapView, DrawingType.MARKER, simpleSymbolContainer.markerSymbol, drawingCollection, true);
+                                            commonController.drawTemporaryGeometry(mainMapView, DrawingType.POLYGON, simpleSymbolContainer.fillSymbol, drawingCollection, false);
+                                            break;
+                                        case POLYLINE:
+                                            commonController.drawTemporaryGeometry(mainMapView, DrawingType.MARKER, simpleSymbolContainer.markerSymbol, drawingCollection, true);
+                                            commonController.drawTemporaryGeometry(mainMapView, DrawingType.POLYLINE, simpleSymbolContainer.lineSymbol, drawingCollection, false);
+                                            break;
+                                        case MARKER:
+                                            commonController.drawTemporaryGeometry(mainMapView, DrawingType.MARKER, simpleSymbolContainer.markerSymbol, drawingCollection, true);
+                                            break;
+                                    }
+                                    break;
                                 }
-                                break;
                             }
+                            // controller.showCallOut(mainMapView, mapPoint);
                         }
-                        // controller.showCallOut(mainMapView, mapPoint);
+                    } else {
+                        isDragging = false;
                     }
                 } else {
-                    isDragging = false;
-                }
-            } else {
-                if (clickBehaviour == ClickBehaviours.DRAWING) {
-                    switch (drawingType) {
-                        case POLYGON:
-                        case POLYLINE:
-                        case MARKER:
-                            break;
+                    if (clickBehaviour == ClickBehaviours.DRAWING) {
+                        switch (drawingType) {
+                            case POLYGON:
+                            case POLYLINE:
+                            case MARKER:
+                                break;
+                        }
                     }
                 }
             }
