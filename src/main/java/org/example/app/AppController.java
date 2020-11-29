@@ -173,8 +173,6 @@ public class AppController extends AController {
                 } else if (loadStatusChangedEvent.getNewLoadStatus().equals(LoadStatus.LOADED)) {
                     timer.cancel();
                     drawingCollection = new PointCollection(mainMap.getSpatialReference());
-                } else {
-                    timer.cancel();
                 }
             }
         });

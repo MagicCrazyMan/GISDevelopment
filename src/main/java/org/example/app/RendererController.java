@@ -10,9 +10,6 @@ import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.symbology.*;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -47,14 +44,29 @@ public class RendererController extends AController {
     public ChoiceBox<SimpleLineSymbol.MarkerStyle> simpleRendererOutlineArrowStyleChoiceBox;
     public ChoiceBox<SimpleLineSymbol.MarkerPlacement> simpleRendererOutlineArrowPlacementChoiceBox;
     public Tab uniqueRendererTab;
-    public TableView<UniqueRendererRowProperty> uniqueRendererFieldsTableView;
-    public TableColumn<UniqueRendererRowProperty, Object> uniqueRendererValuesColumn;
-    public TableColumn<UniqueRendererRowProperty, Symbol> uniqueRendererSymbolColumn;
+    public TableView<SelectableRowProperty> uniqueRendererFieldsTableView;
+    public TableColumn<SelectableRowProperty, Object> uniqueRendererValuesColumn;
+    public TableColumn<SelectableRowProperty, Symbol> uniqueRendererSymbolColumn;
     public ChoiceBox<Field> uniqueRendererFieldsChoiceBox;
+    public ChoiceBox<Field> classBreakRendererFieldsChoiceBox;
+    public TableView<SelectableRowProperty> classBreakRendererFieldsTableView;
+    public TableColumn<SelectableRowProperty, ClassBreakerRowValueRange> classBreakRendererValuesColumn;
+    public TableColumn<SelectableRowProperty, Symbol> classBreakRendererSymbolColumn;
+    public Tab classBreakRendererTab;
+    public Spinner<Double> classBreakerLevelText;
 
     private final AppController.SimpleSymbolContainer symbolContainer = new AppController.SimpleSymbolContainer();
     private final CommonController commonController = new CommonController();
     private FeatureLayer featureLayer;
+    private final Symbol defaultSymbol = new SimpleFillSymbol(
+            SimpleFillSymbol.Style.SOLID,
+            commonController.color2int(Color.rgb(0, 0, 0, 0.5)),
+            new SimpleLineSymbol(
+                    SimpleLineSymbol.Style.SOLID,
+                    commonController.color2int(Color.BLACK),
+                    1
+            )
+    );
 
     private MapView parentMapView;
 
@@ -151,11 +163,11 @@ public class RendererController extends AController {
         // init double to zoom to specified feature
         uniqueRendererFieldsTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         uniqueRendererFieldsTableView.setRowFactory(uniqueRendererFieldCellTableView -> {
-            TableRow<UniqueRendererRowProperty> cellTableRow = new TableRow<>();
+            TableRow<SelectableRowProperty> cellTableRow = new TableRow<>();
             cellTableRow.setOnMouseClicked(mouseEvent -> {
                 if (mouseEvent.getClickCount() >= 2) {
                     if (Objects.nonNull(parentMapView)) {
-                        UniqueRendererRowProperty cell = uniqueRendererFieldCellTableView.getSelectionModel().getSelectedItem();
+                        SelectableRowProperty cell = uniqueRendererFieldCellTableView.getSelectionModel().getSelectedItem();
                         QueryParameters queryParameters = new QueryParameters();
                         queryParameters.setWhereClause(String.format("\"%s\" = '%s'", uniqueRendererFieldsChoiceBox.getSelectionModel().getSelectedItem().getName(), cell.getValue()));
                         commonController.simpleQuery(parentMapView, featureLayer, queryParameters);
@@ -164,7 +176,29 @@ public class RendererController extends AController {
             });
             return cellTableRow;
         });
-        uniqueRendererSymbolColumn.setCellFactory(uniqueRendererFieldCellSymbolTableColumn -> new UniqueRendererSymbolTableCell());
+        uniqueRendererSymbolColumn.setCellFactory(selectableRowPropertySymbolTableColumn -> new SelectableTableCell());
+
+        // init class breaker
+        classBreakRendererFieldsTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        classBreakRendererFieldsTableView.setRowFactory(uniqueRendererFieldCellTableView -> {
+            TableRow<SelectableRowProperty> cellTableRow = new TableRow<>();
+            cellTableRow.setOnMouseClicked(mouseEvent -> {
+                if (mouseEvent.getClickCount() >= 2) {
+                    if (Objects.nonNull(parentMapView)) {
+                        SelectableRowProperty cell = uniqueRendererFieldCellTableView.getSelectionModel().getSelectedItem();
+                        QueryParameters queryParameters = new QueryParameters();
+                        queryParameters.setWhereClause(String.format("\"%s\" = '%s'", classBreakRendererFieldsChoiceBox.getSelectionModel().getSelectedItem().getName(), cell.getValue()));
+                        commonController.simpleQuery(parentMapView, featureLayer, queryParameters);
+                    }
+                }
+            });
+            return cellTableRow;
+        });
+        classBreakRendererSymbolColumn.setCellValueFactory(new PropertyValueFactory<>("symbol"));
+        classBreakRendererValuesColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
+        classBreakRendererSymbolColumn.setCellFactory(selectableRowPropertySymbolTableColumn -> new SelectableTableCell());
+        classBreakRendererValuesColumn.setCellFactory(selectableRowPropertyClassBreakerRowValueRangeTableColumn -> new ClassBreakerClassesTableCell());
+        classBreakerLevelText.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(0, Double.MAX_VALUE, 4));
 
         tabPane.getSelectionModel().selectedItemProperty().addListener((observableValue, tab, t1) -> {
             StackPane header = (StackPane) tabPane.lookup(".tab-header-background");
@@ -173,7 +207,7 @@ public class RendererController extends AController {
             double newSceneHeight = ((Pane) t1.getContent()).getHeight() + header.getHeight();
             parentStage.setHeight(originStageHeight - originSceneHeight + newSceneHeight);
 
-            if (t1.equals(uniqueRendererTab)) {
+            if (t1.equals(uniqueRendererTab) && Objects.isNull(t1.getUserData())) {
                 uniqueRendererFieldsChoiceBox.setConverter(new StringConverter<>() {
                     @Override
                     public String toString(Field feature) {
@@ -188,6 +222,29 @@ public class RendererController extends AController {
                 uniqueRendererFieldsChoiceBox.getItems().clear();
                 uniqueRendererFieldsChoiceBox.getItems().addAll(featureLayer.getFeatureTable().getFields());
                 uniqueRendererFieldsChoiceBox.getSelectionModel().selectFirst();
+                t1.setUserData(new Object());
+            } else if (t1.equals(classBreakRendererTab) && Objects.isNull(classBreakRendererTab.getUserData())) {
+                classBreakRendererFieldsChoiceBox.setConverter(new StringConverter<>() {
+                    @Override
+                    public String toString(Field field) {
+                        return field.getName();
+                    }
+
+                    @Override
+                    public Field fromString(String s) {
+                        return featureLayer.getFeatureTable().getField(s);
+                    }
+                });
+
+                // only numerical fieldType will be added to classBreaker renderer
+                for (Field field : featureLayer.getFeatureTable().getFields()) {
+                    Field.Type type = field.getFieldType();
+                    if (type.equals(Field.Type.DOUBLE) || type.equals(Field.Type.FLOAT) || type.equals(Field.Type.INTEGER) || type.equals(Field.Type.SHORT)) {
+                        classBreakRendererFieldsChoiceBox.getItems().add(field);
+                    }
+                }
+                classBreakRendererFieldsChoiceBox.getSelectionModel().selectFirst();
+                classBreakRendererTab.setUserData(new Object());
             }
         });
     }
@@ -250,10 +307,10 @@ public class RendererController extends AController {
                     }
 
                     // add each value to tableView
-                    ObservableList<UniqueRendererRowProperty> cells = uniqueRendererFieldsTableView.getItems();
+                    ObservableList<SelectableRowProperty> cells = uniqueRendererFieldsTableView.getItems();
                     cells.clear();
                     for (Object valueName : uniqueValueNameSet) {
-                        UniqueRendererRowProperty cell;
+                        SelectableRowProperty cell;
                         if (geometryType.equals(GeometryType.POLYGON) || geometryType.equals(GeometryType.ENVELOPE)) {
                             // create a random color for each value firstly
                             SimpleFillSymbol simpleFillSymbol = new SimpleFillSymbol();
@@ -271,7 +328,7 @@ public class RendererController extends AController {
                                     )
                             );
 
-                            cell = new UniqueRendererRowProperty(field, valueName, simpleFillSymbol);
+                            cell = new SelectableRowProperty(field, valueName, simpleFillSymbol);
                         } else {
                             break;
                         }
@@ -286,17 +343,9 @@ public class RendererController extends AController {
 
     public void onUniqueRendererApply(ActionEvent actionEvent) {
         UniqueValueRenderer uniqueValueRenderer = new UniqueValueRenderer();
-        uniqueValueRenderer.setDefaultSymbol(new SimpleFillSymbol(
-                SimpleFillSymbol.Style.SOLID,
-                commonController.color2int(Color.rgb(0, 0, 0, 0.5)),
-                new SimpleLineSymbol(
-                        SimpleLineSymbol.Style.SOLID,
-                        commonController.color2int(Color.BLACK),
-                        1
-                )
-        ));
+        uniqueValueRenderer.setDefaultSymbol(defaultSymbol);
 
-        for (UniqueRendererRowProperty property : uniqueRendererFieldsTableView.getItems()) {
+        for (SelectableRowProperty property : uniqueRendererFieldsTableView.getItems()) {
             String fieldName = property.getField().getName();
             String value = property.getValue().toString();
             Symbol symbol = property.getSymbol();
@@ -318,12 +367,136 @@ public class RendererController extends AController {
         featureLayer.setRenderer(uniqueValueRenderer);
     }
 
-    public static class UniqueRendererRowProperty {
+    public void onClassBreakRendererLoadField(ActionEvent actionEvent) {
+        Field field = classBreakRendererFieldsChoiceBox.getValue();
+        if (Objects.nonNull(field)) {
+            QueryParameters queryParameters = new QueryParameters();
+            queryParameters.setWhereClause("1=1");
+            ListenableFuture<FeatureQueryResult> future = featureLayer.getFeatureTable().queryFeaturesAsync(queryParameters);
+            future.addDoneListener(() -> {
+                try {
+                    double maxValue = Double.MIN_VALUE;
+                    double minValue = Double.MAX_VALUE;
+//                    Set<Number> valuesSet = new LinkedHashSet<>();
+                    for (Feature feature : future.get()) {
+//                        valuesSet.add((Number) feature.getAttributes().get(field.getName()));
+                        double value = ((Number) feature.getAttributes().get(field.getName())).doubleValue();
+                        if (value > maxValue) {
+                            maxValue = value;
+                        }
+                        if (value < minValue) {
+                            minValue = value;
+                        }
+                    }
+
+//                    Number[] values = valuesSet.toArray(new Number[0]);
+//                    List<Number> values = new LinkedList<>();
+                    double interval = (maxValue - minValue) / classBreakerLevelText.getValue();
+                    ObservableList<SelectableRowProperty> items = classBreakRendererFieldsTableView.getItems();
+                    items.clear();
+                    if (interval == 0) {
+                        SimpleFillSymbol simpleFillSymbol = new SimpleFillSymbol();
+                        simpleFillSymbol.setColor(commonController.color2int(Color.rgb(
+                                (int) (Math.random() * 256),
+                                (int) (Math.random() * 256),
+                                (int) (Math.random() * 256),
+                                Math.random())
+                        ));
+                        simpleFillSymbol.setOutline(
+                                new SimpleLineSymbol(
+                                        SimpleLineSymbol.Style.SOLID,
+                                        commonController.color2int(Color.BLACK),
+                                        2
+                                )
+                        );
+                        items.add(new SelectableRowProperty(field, new ClassBreakerRowValueRange(minValue, maxValue, interval), simpleFillSymbol));
+                    } else {
+                        for (double currentValue = minValue, nextValue; currentValue < maxValue; currentValue += interval) {
+                            // create a random color for each value firstly
+                            SimpleFillSymbol simpleFillSymbol = new SimpleFillSymbol();
+                            simpleFillSymbol.setColor(commonController.color2int(Color.rgb(
+                                    (int) (Math.random() * 256),
+                                    (int) (Math.random() * 256),
+                                    (int) (Math.random() * 256),
+                                    Math.random())
+                            ));
+                            simpleFillSymbol.setOutline(
+                                    new SimpleLineSymbol(
+                                            SimpleLineSymbol.Style.SOLID,
+                                            commonController.color2int(Color.BLACK),
+                                            2
+                                    )
+                            );
+
+                            nextValue = Math.min(currentValue + interval, maxValue);
+                            items.add(new SelectableRowProperty(field, new ClassBreakerRowValueRange(currentValue, nextValue, interval), simpleFillSymbol));
+                        }
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+    }
+
+    public void onClassBreakRendererApply(ActionEvent actionEvent) {
+        ClassBreaksRenderer classBreaksRenderer = new ClassBreaksRenderer();
+        classBreaksRenderer.setDefaultSymbol(defaultSymbol);
+
+        List<ClassBreaksRenderer.ClassBreak> classBreaks = classBreaksRenderer.getClassBreaks();
+        for (int i = 0; i < classBreakRendererFieldsTableView.getItems().size(); i++) {
+            SelectableRowProperty rowProperty = classBreakRendererFieldsTableView.getItems().get(i);
+
+            if (Objects.isNull(classBreaksRenderer.getFieldName()) || classBreaksRenderer.getFieldName().isBlank()) {
+                classBreaksRenderer.setFieldName(rowProperty.getField().getName());
+            }
+
+            ClassBreakerRowValueRange rowValueRange = (ClassBreakerRowValueRange) rowProperty.getValue();
+            classBreaks.add(new ClassBreaksRenderer.ClassBreak(
+                    rowProperty.getField().getName(),
+                    String.format("%s - %s", rowValueRange.getStart(), rowValueRange.getEnd()),
+                    rowValueRange.getStart().doubleValue(),
+                    rowValueRange.getEnd().doubleValue(),
+                    rowProperty.getSymbol()
+            ));
+        }
+        featureLayer.setRenderer(classBreaksRenderer);
+    }
+
+    public static class ClassBreakerRowValueRange {
+        private Number start;
+        private Number end;
+        private Number interval;
+
+        public ClassBreakerRowValueRange(Number start, Number end, Number interval) {
+            this.start = start;
+            this.end = end;
+            this.interval = interval;
+        }
+
+        public Number getStart() {
+            return start;
+        }
+
+        public void setStart(Number start) {
+            this.start = start;
+        }
+
+        public Number getEnd() {
+            return end;
+        }
+
+        public void setEnd(Number end) {
+            this.end = end;
+        }
+    }
+
+    public static class SelectableRowProperty {
         private final SimpleObjectProperty<Field> field = new SimpleObjectProperty<>();
         private final SimpleObjectProperty<Object> value = new SimpleObjectProperty<>();
         private final SimpleObjectProperty<Symbol> symbol = new SimpleObjectProperty<>();
 
-        public UniqueRendererRowProperty(Field field, Object value, Symbol symbol) {
+        public SelectableRowProperty(Field field, Object value, Symbol symbol) {
             this.field.set(field);
             this.value.set(value);
             this.symbol.set(symbol);
@@ -366,7 +539,20 @@ public class RendererController extends AController {
         }
     }
 
-    public static class UniqueRendererSymbolTableCell extends TableCell<UniqueRendererRowProperty, Symbol> {
+    public static class ClassBreakerClassesTableCell extends TableCell<SelectableRowProperty, ClassBreakerRowValueRange> {
+        @Override
+        protected void updateItem(ClassBreakerRowValueRange item, boolean empty) {
+            super.updateItem(item, empty);
+            if (Objects.isNull(item) || empty) {
+                setGraphic(null);
+                setText(null);
+            } else {
+                setText(String.format("%s - %s", item.getStart().toString(), item.getEnd().toString()));
+            }
+        }
+    }
+
+    public static class SelectableTableCell extends TableCell<SelectableRowProperty, Symbol> {
         final CommonController commonController = new CommonController();
 
         @Override
@@ -377,43 +563,46 @@ public class RendererController extends AController {
                 setGraphic(null);
                 setText(null);
             } else {
-                if (Objects.isNull(getGraphic())) {
-                    HBox hBox = new HBox();
-                    hBox.setSpacing(5);
-                    hBox.setAlignment(Pos.CENTER);
-                    StackPane.setAlignment(hBox, Pos.CENTER);
-                    StackPane stackPane = new StackPane(hBox);
+                HBox hBox = new HBox();
+                hBox.setSpacing(5);
+                hBox.setAlignment(Pos.CENTER);
+                StackPane.setAlignment(hBox, Pos.CENTER);
+                StackPane stackPane = new StackPane(hBox);
 
-                    ColorPicker colorPicker = new ColorPicker();
-                    Canvas canvas;
-                    if (item instanceof SimpleFillSymbol) {
-                        SimpleFillSymbol symbol = (SimpleFillSymbol) item;
-                        canvas = new Canvas(30, 20);
-                        GraphicsContext graphicsContext = canvas.getGraphicsContext2D();
-                        // fill color followed symbol color
-                        graphicsContext.setFill(commonController.int2color(symbol.getColor()));
+                ColorPicker colorPicker;
+                Canvas canvas;
+                if (item instanceof SimpleFillSymbol) {
+                    SimpleFillSymbol symbol = (SimpleFillSymbol) item;
+
+                    colorPicker = new ColorPicker();
+                    canvas = new Canvas(30, 20);
+                    GraphicsContext graphicsContext = canvas.getGraphicsContext2D();
+                    // fill color followed symbol color
+                    graphicsContext.setFill(commonController.int2color(symbol.getColor()));
+                    graphicsContext.fillRect(0, 0, 30, 20);
+                    // draw border
+                    graphicsContext.setStroke(commonController.int2color(symbol.getOutline().getColor()));
+                    graphicsContext.setLineWidth(1);
+                    graphicsContext.strokeRect(0, 0, 30, 20);
+
+                    // set colorPicker
+                    colorPicker.setValue(commonController.int2color(symbol.getColor()));
+                    colorPicker.valueProperty().addListener((observableValue, color, t1) -> {
+                        // update symbol's color
+                        symbol.setColor(commonController.color2int(t1));
+                        // redraw canvas
+                        graphicsContext.setFill(t1);
                         graphicsContext.fillRect(0, 0, 30, 20);
-                        // draw border
                         graphicsContext.setStroke(commonController.int2color(symbol.getOutline().getColor()));
                         graphicsContext.setLineWidth(1);
                         graphicsContext.strokeRect(0, 0, 30, 20);
-
-                        // set colorPicker
-                        colorPicker.setValue(commonController.int2color(symbol.getColor()));
-                        colorPicker.valueProperty().addListener((observableValue, color, t1) -> {
-                            // update symbol's color
-                            symbol.setColor(commonController.color2int(t1));
-                            // redraw canvas
-                            graphicsContext.setFill(t1);
-                            graphicsContext.fillRect(0, 0, 30, 20);
-                        });
-                    } else {
-                        return;
-                    }
-
-                    hBox.getChildren().addAll(canvas, colorPicker);
-                    setGraphic(stackPane);
+                    });
+                } else {
+                    return;
                 }
+
+                hBox.getChildren().addAll(canvas, colorPicker);
+                setGraphic(stackPane);
             }
         }
     }
