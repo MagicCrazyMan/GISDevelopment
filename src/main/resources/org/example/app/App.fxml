@@ -41,6 +41,7 @@
             <Menu mnemonicParsing="false" text="Edit">
               <items>
                 <MenuItem mnemonicParsing="false" onAction="#onDraw" text="Draw" />
+                  <MenuItem mnemonicParsing="false" onAction="#onSketchEditor" text="Sketch Editor" />
               </items>
             </Menu>
         </menus>

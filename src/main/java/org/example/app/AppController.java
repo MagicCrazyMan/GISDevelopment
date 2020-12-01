@@ -22,6 +22,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.*;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.Dragboard;
@@ -61,7 +62,8 @@ public class AppController extends AController {
         SIMPLE_QUERY,
         CLICK_QUERY,
         DRAW,
-        DRAW_OPTIONS
+        DRAW_OPTIONS,
+        SKETCH_EDITOR
     }
 
     public enum ClickBehaviours {
@@ -70,6 +72,7 @@ public class AppController extends AController {
         SELECTED_FEATURE_AND_QUERY,
         IDENTITY_QUERY,
         DRAWING,
+        SKETCH_EDITOR
     }
 
     public enum DrawingType {
@@ -203,6 +206,7 @@ public class AppController extends AController {
                                             MenuItem renderer = new MenuItem("Renderer");
                                             renderer.setOnAction(new EventHandler<>() {
                                                 Stage stage;
+
                                                 @Override
                                                 public void handle(ActionEvent actionEvent) {
                                                     try {
@@ -382,7 +386,7 @@ public class AppController extends AController {
     private void initMapViewClicker() {
         mainMapView.setOnDragDetected(mouseEvent -> isDragging = true);
         mainMapView.setOnMouseClicked(mouseEvent -> {
-            if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+            if (mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
                 if (mouseEvent.getClickCount() == 1) {
                     if (!isDragging) {
                         Point2D screenPoint = new Point2D(mouseEvent.getX(), mouseEvent.getY());
@@ -599,5 +603,29 @@ public class AppController extends AController {
 
     public void onLoadOnlineData(ActionEvent actionEvent) {
         commonController.loadOnlineData(mainMapView, onlineDataURLText.getText(), onlineDataTypeChoiceBox.getSelectionModel().getSelectedItem());
+    }
+
+    public void onSketchEditor(ActionEvent actionEvent) {
+        if (!runtimeStages.containsKey(RuntimeStageType.SKETCH_EDITOR)) {
+            try {
+                FXMLLoader fxmlLoader = new FXMLLoader(AppController.class.getResource("SketchEditor.fxml"));
+                Pane pane = fxmlLoader.load();
+                SketchEditorController controller = fxmlLoader.getController();
+                Stage stage = new Stage();
+                controller.setParentStage(stage);
+                controller.setParentMapView(mainMapView);
+                controller.setAppController(this);
+                stage.setScene(new Scene(pane));
+                stage.setResizable(false);
+                stage.setTitle("Sketch Editor");
+                stage.show();
+                runtimeStages.put(RuntimeStageType.SKETCH_EDITOR, stage);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            runtimeStages.get(RuntimeStageType.SKETCH_EDITOR).toFront();
+        }
     }
 }
