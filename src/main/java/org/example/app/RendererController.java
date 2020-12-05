@@ -10,6 +10,8 @@ import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.symbology.*;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -198,7 +200,7 @@ public class RendererController extends AController {
         classBreakRendererValuesColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
         classBreakRendererSymbolColumn.setCellFactory(selectableRowPropertySymbolTableColumn -> new SelectableTableCell());
         classBreakRendererValuesColumn.setCellFactory(selectableRowPropertyClassBreakerRowValueRangeTableColumn -> new ClassBreakerClassesTableCell());
-        classBreakerLevelText.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(0, Double.MAX_VALUE, 4));
+        classBreakerLevelText.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(1, Double.MAX_VALUE, 4));
 
         tabPane.getSelectionModel().selectedItemProperty().addListener((observableValue, tab, t1) -> {
             StackPane header = (StackPane) tabPane.lookup(".tab-header-background");
@@ -329,6 +331,33 @@ public class RendererController extends AController {
                             );
 
                             cell = new SelectableRowProperty(field, valueName, simpleFillSymbol);
+                        } else if (geometryType.equals(GeometryType.POLYLINE)) {
+                            SimpleLineSymbol simpleLineSymbol = new SimpleLineSymbol();
+                            simpleLineSymbol.setColor(commonController.color2int(Color.rgb(
+                                    (int) (Math.random() * 256),
+                                    (int) (Math.random() * 256),
+                                    (int) (Math.random() * 256),
+                                    Math.random())
+                            ));
+
+                            cell = new SelectableRowProperty(field, valueName, simpleLineSymbol);
+                        } else if (geometryType.equals(GeometryType.MULTIPOINT) || geometryType.equals(GeometryType.POINT)) {
+                            SimpleMarkerSymbol simpleMarkerSymbol = new SimpleMarkerSymbol();
+                            simpleMarkerSymbol.setColor(commonController.color2int(Color.rgb(
+                                    (int) (Math.random() * 256),
+                                    (int) (Math.random() * 256),
+                                    (int) (Math.random() * 256),
+                                    Math.random())
+                            ));
+                            simpleMarkerSymbol.setOutline(
+                                    new SimpleLineSymbol(
+                                            SimpleLineSymbol.Style.SOLID,
+                                            commonController.color2int(Color.BLACK),
+                                            1
+                                    )
+                            );
+
+                            cell = new SelectableRowProperty(field, valueName, simpleMarkerSymbol);
                         } else {
                             break;
                         }
@@ -377,9 +406,8 @@ public class RendererController extends AController {
                 try {
                     double maxValue = Double.MIN_VALUE;
                     double minValue = Double.MAX_VALUE;
-//                    Set<Number> valuesSet = new LinkedHashSet<>();
+                    GeometryType geometryType = future.get().getGeometryType();
                     for (Feature feature : future.get()) {
-//                        valuesSet.add((Number) feature.getAttributes().get(field.getName()));
                         double value = ((Number) feature.getAttributes().get(field.getName())).doubleValue();
                         if (value > maxValue) {
                             maxValue = value;
@@ -389,29 +417,12 @@ public class RendererController extends AController {
                         }
                     }
 
-//                    Number[] values = valuesSet.toArray(new Number[0]);
-//                    List<Number> values = new LinkedList<>();
                     double interval = (maxValue - minValue) / classBreakerLevelText.getValue();
                     ObservableList<SelectableRowProperty> items = classBreakRendererFieldsTableView.getItems();
                     items.clear();
-                    if (interval == 0) {
-                        SimpleFillSymbol simpleFillSymbol = new SimpleFillSymbol();
-                        simpleFillSymbol.setColor(commonController.color2int(Color.rgb(
-                                (int) (Math.random() * 256),
-                                (int) (Math.random() * 256),
-                                (int) (Math.random() * 256),
-                                Math.random())
-                        ));
-                        simpleFillSymbol.setOutline(
-                                new SimpleLineSymbol(
-                                        SimpleLineSymbol.Style.SOLID,
-                                        commonController.color2int(Color.BLACK),
-                                        2
-                                )
-                        );
-                        items.add(new SelectableRowProperty(field, new ClassBreakerRowValueRange(minValue, maxValue, interval), simpleFillSymbol));
-                    } else {
-                        for (double currentValue = minValue, nextValue; currentValue < maxValue; currentValue += interval) {
+                    for (double currentValue = minValue, nextValue; currentValue < maxValue; currentValue += interval) {
+                        Symbol symbol;
+                        if (geometryType.equals(GeometryType.POLYGON) || geometryType.equals(GeometryType.ENVELOPE)) {
                             // create a random color for each value firstly
                             SimpleFillSymbol simpleFillSymbol = new SimpleFillSymbol();
                             simpleFillSymbol.setColor(commonController.color2int(Color.rgb(
@@ -427,10 +438,38 @@ public class RendererController extends AController {
                                             2
                                     )
                             );
-
-                            nextValue = Math.min(currentValue + interval, maxValue);
-                            items.add(new SelectableRowProperty(field, new ClassBreakerRowValueRange(currentValue, nextValue, interval), simpleFillSymbol));
+                            symbol = simpleFillSymbol;
+                        } else if (geometryType.equals(GeometryType.POLYLINE)) {
+                            SimpleLineSymbol simpleLineSymbol = new SimpleLineSymbol();
+                            simpleLineSymbol.setColor(commonController.color2int(Color.rgb(
+                                    (int) (Math.random() * 256),
+                                    (int) (Math.random() * 256),
+                                    (int) (Math.random() * 256),
+                                    Math.random())
+                            ));
+                            symbol = simpleLineSymbol;
+                        } else if (geometryType.equals(GeometryType.MULTIPOINT) || geometryType.equals(GeometryType.POINT)) {
+                            SimpleMarkerSymbol simpleMarkerSymbol = new SimpleMarkerSymbol();
+                            simpleMarkerSymbol.setColor(commonController.color2int(Color.rgb(
+                                    (int) (Math.random() * 256),
+                                    (int) (Math.random() * 256),
+                                    (int) (Math.random() * 256),
+                                    Math.random())
+                            ));
+                            simpleMarkerSymbol.setOutline(
+                                    new SimpleLineSymbol(
+                                            SimpleLineSymbol.Style.SOLID,
+                                            commonController.color2int(Color.BLACK),
+                                            1
+                                    )
+                            );
+                            symbol = simpleMarkerSymbol;
+                        } else {
+                            break;
                         }
+
+                        nextValue = Math.min(currentValue + interval, maxValue);
+                        items.add(new SelectableRowProperty(field, new ClassBreakerRowValueRange(currentValue, nextValue, interval), symbol));
                     }
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
@@ -569,33 +608,65 @@ public class RendererController extends AController {
                 StackPane.setAlignment(hBox, Pos.CENTER);
                 StackPane stackPane = new StackPane(hBox);
 
-                ColorPicker colorPicker;
-                Canvas canvas;
+                ColorPicker colorPicker = new ColorPicker();
+                Canvas canvas = new Canvas(30, 20);
                 if (item instanceof SimpleFillSymbol) {
-                    SimpleFillSymbol symbol = (SimpleFillSymbol) item;
-
-                    colorPicker = new ColorPicker();
-                    canvas = new Canvas(30, 20);
+                    FillSymbol fillSymbol = (FillSymbol) item;
                     GraphicsContext graphicsContext = canvas.getGraphicsContext2D();
                     // fill color followed symbol color
-                    graphicsContext.setFill(commonController.int2color(symbol.getColor()));
+                    graphicsContext.setFill(commonController.int2color(fillSymbol.getColor()));
                     graphicsContext.fillRect(0, 0, 30, 20);
                     // draw border
-                    graphicsContext.setStroke(commonController.int2color(symbol.getOutline().getColor()));
+                    graphicsContext.setStroke(commonController.int2color(fillSymbol.getOutline().getColor()));
                     graphicsContext.setLineWidth(1);
                     graphicsContext.strokeRect(0, 0, 30, 20);
 
                     // set colorPicker
-                    colorPicker.setValue(commonController.int2color(symbol.getColor()));
+                    colorPicker.setValue(commonController.int2color(fillSymbol.getColor()));
                     colorPicker.valueProperty().addListener((observableValue, color, t1) -> {
                         // update symbol's color
-                        symbol.setColor(commonController.color2int(t1));
+                        fillSymbol.setColor(commonController.color2int(t1));
                         // redraw canvas
                         graphicsContext.setFill(t1);
                         graphicsContext.fillRect(0, 0, 30, 20);
-                        graphicsContext.setStroke(commonController.int2color(symbol.getOutline().getColor()));
+                        graphicsContext.setStroke(commonController.int2color(fillSymbol.getOutline().getColor()));
                         graphicsContext.setLineWidth(1);
                         graphicsContext.strokeRect(0, 0, 30, 20);
+                    });
+                } else if (item instanceof SimpleLineSymbol) {
+                    LineSymbol lineSymbol = (LineSymbol) item;
+                    GraphicsContext graphicsContext = canvas.getGraphicsContext2D();
+                    // do the same things as above
+                    graphicsContext.setStroke(commonController.int2color(lineSymbol.getColor()));
+                    graphicsContext.setLineWidth(1);
+                    graphicsContext.strokeLine(0, 10, 30, 10);
+
+                    colorPicker.setValue(commonController.int2color(lineSymbol.getColor()));
+                    colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+                        lineSymbol.setColor(commonController.color2int(newValue));
+                        graphicsContext.setStroke(newValue);
+                        graphicsContext.setLineWidth(1);
+                        graphicsContext.strokeLine(0, 10, 30, 10);
+                    });
+                } else if (item instanceof SimpleMarkerSymbol) {
+                    SimpleMarkerSymbol markerSymbol = (SimpleMarkerSymbol) item;
+                    GraphicsContext graphicsContext = canvas.getGraphicsContext2D();
+
+                    graphicsContext.setFill(commonController.int2color(markerSymbol.getColor()));
+                    graphicsContext.fillOval(5, 0, 20, 20);
+
+                    graphicsContext.setStroke(commonController.int2color(markerSymbol.getOutline().getColor()));
+                    graphicsContext.setLineWidth(1);
+                    graphicsContext.strokeOval(6, 1, 18, 18);
+
+                    colorPicker.setValue(commonController.int2color(markerSymbol.getColor()));
+                    colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+                        markerSymbol.setColor(commonController.color2int(newValue));
+                        graphicsContext.setFill(newValue);
+                        graphicsContext.fillOval(5, 0, 20, 20);
+                        graphicsContext.setStroke(commonController.int2color(markerSymbol.getOutline().getColor()));
+                        graphicsContext.setLineWidth(1);
+                        graphicsContext.strokeOval(6, 1, 18, 18);
                     });
                 } else {
                     return;
