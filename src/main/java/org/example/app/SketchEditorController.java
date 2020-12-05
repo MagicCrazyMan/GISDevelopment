@@ -21,6 +21,7 @@ import javafx.util.StringConverter;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Predicate;
 
 public class SketchEditorController extends AController {
     public ChoiceBox<SketchCreationMode> drawTypeChoiceBox;
@@ -54,14 +55,10 @@ public class SketchEditorController extends AController {
     public void setParentStage(Stage stage) {
         super.setParentStage(stage);
         stage.setOnCloseRequest(windowEvent -> {
-            if (!sketchEditor.getGeometry().isEmpty()) {
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setTitle("CONFIRMATION");
-                alert.setContentText("Existing non finished sketch edit, do you want to continue?");
-                Optional<ButtonType> button = alert.showAndWait();
-                if (button.isPresent() && button.get().equals(ButtonType.OK)) {
-                    windowEvent.consume();
-                }
+            if (stopDraw()) {
+                appController.runtimeStages.remove(AppController.RuntimeStageType.SKETCH_EDITOR);
+            } else {
+                windowEvent.consume();
             }
         });
     }
@@ -118,13 +115,28 @@ public class SketchEditorController extends AController {
         editButton.selectedProperty().addListener((observableValue, aBoolean, t1) -> {
             if (t1) {
                 if (Objects.isNull(editEventHandler)) {
+                    if (!sketchEditor.getGeometry().isEmpty()) {
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                        alert.setTitle("CONFIRMATION");
+                        alert.setContentText("Existing non finished sketch edit, do you want to continue?");
+                        Optional<ButtonType> button = alert.showAndWait();
+                        if (button.isEmpty() || button.get().equals(ButtonType.CANCEL)) {
+                            editButton.setSelected(false);
+                            return;
+                        }
+                    }
+                    sketchEditor.stop();
+                    drawTypeChoiceBox.setDisable(true);
+
                     editEventHandler = mouseEvent -> {
                         ListenableFuture<IdentifyGraphicsOverlayResult> resultListenableFuture = parentMapView.identifyGraphicsOverlayAsync(sketchEditGraphicOverlay, new Point2D(mouseEvent.getX(), mouseEvent.getY()), 5, false);
                         resultListenableFuture.addDoneListener(() -> {
                             try {
                                 if (!resultListenableFuture.get().getGraphics().isEmpty()) {
                                     if (Objects.isNull(sketchEditor.getGeometry()) || !resultListenableFuture.get().getGraphics().get(0).getGeometry().equals(sketchEditor.getGeometry())) {
-                                        sketchEditor.start(resultListenableFuture.get().getGraphics().get(0).getGeometry());
+                                        Graphic graphic = resultListenableFuture.get().getGraphics().get(0);
+                                        sketchEditor.start(graphic.getGeometry());
+                                        sketchEditGraphicOverlay.getGraphics().remove(graphic);
                                     }
                                 }
                             } catch (InterruptedException | ExecutionException e) {
@@ -135,6 +147,8 @@ public class SketchEditorController extends AController {
                 }
                 parentMapView.addEventHandler(MouseEvent.MOUSE_CLICKED, editEventHandler);
             } else {
+                sketchEditor.start(drawTypeChoiceBox.getValue());
+                drawTypeChoiceBox.setDisable(false);
                 parentMapView.removeEventHandler(MouseEvent.MOUSE_CLICKED, editEventHandler);
             }
         });
@@ -160,7 +174,7 @@ public class SketchEditorController extends AController {
     }
 
     private boolean stopDraw() {
-        if (!sketchEditor.getGeometry().isEmpty()) {
+        if (Objects.nonNull(sketchEditor.getGeometry()) && !sketchEditor.getGeometry().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("CONFIRMATION");
             alert.setContentText("Existing non finished sketch edit, do you want to continue?");
@@ -187,21 +201,21 @@ public class SketchEditorController extends AController {
     }
 
     public void onEdit(ActionEvent actionEvent) {
-        if (editButton.isSelected()) {
-            if (!sketchEditor.getGeometry().isEmpty()) {
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setTitle("CONFIRMATION");
-                alert.setContentText("Existing non finished sketch edit, do you want to continue?");
-                Optional<ButtonType> button = alert.showAndWait();
-                if (button.isEmpty() || button.get().equals(ButtonType.CANCEL)) {
-                    editButton.setSelected(false);
-                    return;
-                }
-            }
-            sketchEditor.stop();
-        } else {
-            sketchEditor.start(drawTypeChoiceBox.getValue());
-        }
+//        if (editButton.isSelected()) {
+//            if (!sketchEditor.getGeometry().isEmpty()) {
+//                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+//                alert.setTitle("CONFIRMATION");
+//                alert.setContentText("Existing non finished sketch edit, do you want to continue?");
+//                Optional<ButtonType> button = alert.showAndWait();
+//                if (button.isEmpty() || button.get().equals(ButtonType.CANCEL)) {
+//                    editButton.setSelected(false);
+//                    return;
+//                }
+//            }
+//            sketchEditor.stop();
+//        } else {
+//            sketchEditor.start(drawTypeChoiceBox.getValue());
+//        }
     }
 
     public void onUndo(ActionEvent actionEvent) {
@@ -231,11 +245,9 @@ public class SketchEditorController extends AController {
 
             if (editButton.isSelected()) {
                 sketchEditor.stop();
-                sketchEditor.clearGeometry();
-            } else {
-                sketchEditGraphicOverlay.getGraphics().add(graphic);
-                sketchEditor.clearGeometry();
             }
+            sketchEditGraphicOverlay.getGraphics().add(graphic);
+            sketchEditor.clearGeometry();
         }
     }
 

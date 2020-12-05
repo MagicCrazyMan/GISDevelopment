@@ -449,11 +449,11 @@ public class AppController extends AController {
     }
 
     public void dispose() {
-        if (Objects.nonNull(mainMapView)) {
-            mainMapView.dispose();
-        }
         for (Stage stage : runtimeStages.values()) {
             stage.close();
+        }
+        if (Objects.nonNull(mainMapView)) {
+            mainMapView.dispose();
         }
     }
 
@@ -461,7 +461,6 @@ public class AppController extends AController {
         if (Objects.nonNull(parentStage.getOnCloseRequest())) {
             parentStage.getOnCloseRequest().handle(new WindowEvent(parentStage, WindowEvent.WINDOW_CLOSE_REQUEST));
         }
-        parentStage.onHiddenProperty().addListener((observableValue, windowEventEventHandler, t1) -> System.out.println(222));
         parentStage.close();
     }
 
@@ -606,6 +605,10 @@ public class AppController extends AController {
     }
 
     public void onSketchEditor(ActionEvent actionEvent) {
+        if (!mainMap.getLoadStatus().equals(LoadStatus.LOADED)) {
+            return;
+        }
+
         if (!runtimeStages.containsKey(RuntimeStageType.SKETCH_EDITOR)) {
             try {
                 FXMLLoader fxmlLoader = new FXMLLoader(AppController.class.getResource("SketchEditor.fxml"));
