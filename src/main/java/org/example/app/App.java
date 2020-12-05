@@ -38,7 +38,7 @@ public class App extends Application {
                 primaryStage.setMinHeight(primaryStage.getHeight());
                 primaryStage.setMinWidth(primaryStage.getWidth());
             });
-            primaryStage.setOnCloseRequest(windowEvent -> appController.dispose());
+            primaryStage.setOnCloseRequest(windowEvent -> System.exit(0));
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();
