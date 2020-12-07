@@ -63,7 +63,9 @@ public class AppController extends AController {
         CLICK_QUERY,
         DRAW,
         DRAW_OPTIONS,
-        SKETCH_EDITOR
+        SKETCH_EDITOR,
+        QUERY_BY_ATTRIBUTE,
+        QUERY_BY_LOCATION
     }
 
     public enum ClickBehaviours {
@@ -558,6 +560,53 @@ public class AppController extends AController {
         } else {
             runtimeStages.get(RuntimeStageType.CLICK_QUERY).toFront();
         }
+    }
+
+    public void onQueryByAttribute(ActionEvent actionEvent) {
+        if (!runtimeStages.containsKey(RuntimeStageType.QUERY_BY_ATTRIBUTE)) {
+            try {
+                FXMLLoader fxmlLoader = new FXMLLoader(AppController.class.getResource("QueryByAttribute.fxml"));
+                Pane pane = fxmlLoader.load();
+                QueryByAttributeController controller = fxmlLoader.getController();
+                Stage stage = new Stage();
+                stage.setScene(new Scene(pane));
+                stage.setTitle("Query By Attribute");
+                stage.setResizable(false);
+                stage.setOnCloseRequest(event -> runtimeStages.remove(RuntimeStageType.QUERY_BY_ATTRIBUTE));
+                controller.setParentStage(stage);
+                controller.setAppController(this);
+                stage.show();
+                runtimeStages.put(RuntimeStageType.QUERY_BY_ATTRIBUTE, stage);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            runtimeStages.get(RuntimeStageType.QUERY_BY_ATTRIBUTE).toFront();
+        }
+    }
+
+    public void onQueryByLocation(ActionEvent actionEvent) {
+        if (!runtimeStages.containsKey(RuntimeStageType.QUERY_BY_LOCATION)) {
+            try {
+                FXMLLoader fxmlLoader = new FXMLLoader(AppController.class.getResource("QueryByLocation.fxml"));
+                Pane pane = fxmlLoader.load();
+                QueryByLocationController controller = fxmlLoader.getController();
+                Stage stage = new Stage();
+                stage.setScene(new Scene(pane));
+                stage.setTitle("Query By Location");
+                stage.setResizable(false);
+                stage.setOnCloseRequest(event -> runtimeStages.remove(RuntimeStageType.QUERY_BY_LOCATION));
+                controller.setParentStage(stage);
+                controller.setAppController(this);
+                stage.show();
+                runtimeStages.put(RuntimeStageType.QUERY_BY_LOCATION, stage);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            runtimeStages.get(RuntimeStageType.QUERY_BY_LOCATION).toFront();
+        }
+
     }
 
     public void onDraw(ActionEvent actionEvent) {

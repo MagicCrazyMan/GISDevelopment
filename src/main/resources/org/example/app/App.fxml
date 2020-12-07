@@ -36,6 +36,12 @@
             <items>
               <MenuItem mnemonicParsing="false" onAction="#onSimpleQuery" text="Simple Query" />
                   <MenuItem mnemonicParsing="false" onAction="#onClickQuery" text="Click Query" />
+                  <Menu mnemonicParsing="false" text="Advance Query">
+                    <items>
+                      <MenuItem mnemonicParsing="false" onAction="#onQueryByAttribute" text="Query By Attributes" />
+                        <MenuItem mnemonicParsing="false" onAction="#onQueryByLocation" text="Query By Location" />
+                    </items>
+                  </Menu>
             </items>
           </Menu>
             <Menu mnemonicParsing="false" text="Edit">
