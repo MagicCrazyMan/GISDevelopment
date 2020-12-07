@@ -11,10 +11,12 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.WindowEvent;
 import javafx.util.StringConverter;
 
 import java.util.*;
@@ -198,6 +200,7 @@ public class QueryByAttributeController extends AController {
 
     public void onCancel(ActionEvent actionEvent) {
         parentStage.close();
+        parentStage.getOnCloseRequest().handle(new WindowEvent(parentStage, Event.ANY));
     }
 
     public void onSqlClear(ActionEvent actionEvent) {
