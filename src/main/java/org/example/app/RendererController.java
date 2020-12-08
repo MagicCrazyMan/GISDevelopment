@@ -27,6 +27,8 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -303,15 +305,15 @@ public class RendererController extends AController {
                     GeometryType geometryType = featureLayer.getFeatureTable().getGeometryType();
 
                     // query unique value with a HashSet
-                    Set<Object> uniqueValueNameSet = new HashSet<>();
+                    Set<Object> uniqueAttributes = new HashSet<>();
                     for (Feature feature : features.get()) {
-                        uniqueValueNameSet.add(feature.getAttributes().get(field.getName()));
+                        uniqueAttributes.add(feature.getAttributes().get(field.getName()));
                     }
 
                     // add each value to tableView
                     ObservableList<SelectableRowProperty> cells = uniqueRendererFieldsTableView.getItems();
                     cells.clear();
-                    for (Object valueName : uniqueValueNameSet) {
+                    for (Object attribute : uniqueAttributes) {
                         SelectableRowProperty cell;
                         if (geometryType.equals(GeometryType.POLYGON) || geometryType.equals(GeometryType.ENVELOPE)) {
                             // create a random color for each value firstly
@@ -326,11 +328,11 @@ public class RendererController extends AController {
                                     new SimpleLineSymbol(
                                             SimpleLineSymbol.Style.SOLID,
                                             commonController.color2int(Color.BLACK),
-                                            2
+                                         2
                                     )
                             );
 
-                            cell = new SelectableRowProperty(field, valueName, simpleFillSymbol);
+                            cell = new SelectableRowProperty(field, attribute, simpleFillSymbol);
                         } else if (geometryType.equals(GeometryType.POLYLINE)) {
                             SimpleLineSymbol simpleLineSymbol = new SimpleLineSymbol();
                             simpleLineSymbol.setColor(commonController.color2int(Color.rgb(
@@ -340,7 +342,7 @@ public class RendererController extends AController {
                                     Math.random())
                             ));
 
-                            cell = new SelectableRowProperty(field, valueName, simpleLineSymbol);
+                            cell = new SelectableRowProperty(field, attribute, simpleLineSymbol);
                         } else if (geometryType.equals(GeometryType.MULTIPOINT) || geometryType.equals(GeometryType.POINT)) {
                             SimpleMarkerSymbol simpleMarkerSymbol = new SimpleMarkerSymbol();
                             simpleMarkerSymbol.setColor(commonController.color2int(Color.rgb(
@@ -357,7 +359,7 @@ public class RendererController extends AController {
                                     )
                             );
 
-                            cell = new SelectableRowProperty(field, valueName, simpleMarkerSymbol);
+                            cell = new SelectableRowProperty(field, attribute, simpleMarkerSymbol);
                         } else {
                             break;
                         }
