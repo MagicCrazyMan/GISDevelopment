@@ -58,6 +58,8 @@ public class SketchEditorController extends AController {
         stage.setOnCloseRequest(windowEvent -> {
             if (stopDraw()) {
                 appController.runtimeStages.remove(AppController.RuntimeStageType.SKETCH_EDITOR);
+                parentMapView.setSketchEditor(null);
+                parentMapView.getGraphicsOverlays().remove(sketchEditGraphicOverlay);
             } else {
                 windowEvent.consume();
             }
@@ -253,7 +255,6 @@ public class SketchEditorController extends AController {
                             for (Graphic graphic : sketchEditGraphicOverlay.getGraphics()) {
                                 Geometry geometry = graphic.getGeometry();
 
-                                System.out.println(parentMapView.getMapScale());
                                 Polygon newGeometry = GeometryEngine.buffer(geometry, 500000.0);
                                 graphic.setGeometry(newGeometry);
                                 graphic.setSymbol(fillSymbol);

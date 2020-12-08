@@ -27,6 +27,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -74,7 +75,8 @@ public class AppController extends AController {
         SELECTED_FEATURE_AND_QUERY,
         IDENTITY_QUERY,
         DRAWING,
-        SKETCH_EDITOR
+        SKETCH_EDITOR,
+        QUERY_BY_LOCATION
     }
 
     public enum DrawingType {
@@ -387,7 +389,7 @@ public class AppController extends AController {
 
     private void initMapViewClicker() {
         mainMapView.setOnDragDetected(mouseEvent -> isDragging = true);
-        mainMapView.setOnMouseClicked(mouseEvent -> {
+        mainMapView.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> {
             if (mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
                 if (mouseEvent.getClickCount() == 1) {
                     if (!isDragging) {
@@ -430,6 +432,11 @@ public class AppController extends AController {
                                     }
                                     break;
                                 }
+                                case QUERY_BY_LOCATION:
+                                case SKETCH_EDITOR:
+                                case NULL:
+                                default:
+                                    break;
                             }
                             // controller.showCallOut(mainMapView, mapPoint);
                         }
@@ -595,7 +602,7 @@ public class AppController extends AController {
                 stage.setScene(new Scene(pane));
                 stage.setTitle("Query By Location");
                 stage.setResizable(false);
-                stage.setOnCloseRequest(event -> runtimeStages.remove(RuntimeStageType.QUERY_BY_LOCATION));
+                stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, event -> runtimeStages.remove(RuntimeStageType.QUERY_BY_LOCATION));
                 controller.setParentStage(stage);
                 controller.setAppController(this);
                 stage.show();

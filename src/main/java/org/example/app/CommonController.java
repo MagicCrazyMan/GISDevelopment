@@ -14,11 +14,24 @@ import com.esri.arcgisruntime.mapping.view.*;
 import com.esri.arcgisruntime.raster.Raster;
 import com.esri.arcgisruntime.symbology.*;
 import com.esri.arcgisruntime.util.ListenableList;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
-import javafx.scene.control.Alert;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
+import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -337,6 +350,67 @@ public class CommonController {
                 color & 0xFF,
                 ((color >>> 24) & 0xFF) / 255.0
         );
+    }
+
+    public void showQueryResult(@NotNull FeatureQueryResult featureQueryResult) {
+        List<Feature> features = new LinkedList<>();
+        for (Feature feature : featureQueryResult) {
+            features.add(feature);
+        }
+
+        ChoiceBox<Integer> choiceBox = new ChoiceBox<>();
+        choiceBox.setMinSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
+        choiceBox.setPrefSize(200, Region.USE_COMPUTED_SIZE);
+        choiceBox.setMaxSize(Integer.MAX_VALUE, Integer.MAX_VALUE);
+        HBox.setHgrow(choiceBox, Priority.ALWAYS);
+        Label label = new Label("Results:");
+        TextArea textArea = new TextArea();
+        textArea.setMaxWidth(Integer.MAX_VALUE);
+        textArea.setEditable(false);
+        textArea.setMinSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
+        textArea.setPrefSize(300, 350);
+        textArea.setMaxSize(Integer.MAX_VALUE, Integer.MAX_VALUE);
+        choiceBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(Integer integer) {
+                return integer.toString();
+            }
+
+            @Override
+            public Integer fromString(String s) {
+                return Integer.parseInt(s);
+            }
+        });
+        choiceBox.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (Map.Entry<String, Object> attribute : features.get(newValue).getAttributes().entrySet()) {
+                stringBuilder.append(attribute.getKey()).append(": ").append(attribute.getValue()).append(System.lineSeparator());
+            }
+            textArea.setText(stringBuilder.toString());
+        });
+        for (int i = 0; i < features.size(); i++) {
+            choiceBox.getItems().add(i);
+        }
+        choiceBox.getSelectionModel().selectFirst();
+        HBox hBox0 = new HBox(label, choiceBox);
+        hBox0.setSpacing(5);
+        hBox0.setPadding(new Insets(5));
+        hBox0.setAlignment(Pos.CENTER_LEFT);
+        VBox vBox = new VBox(hBox0, textArea);
+        vBox.setMinSize(0, 0);
+        vBox.setPrefSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
+        vBox.setMaxSize(Integer.MAX_VALUE, Integer.MAX_VALUE);
+        vBox.setPadding(new Insets(5));
+
+        Stage stage = new Stage();
+        stage.setTitle("Query Results");
+        stage.setScene(new Scene(vBox));
+        stage.setResizable(false);
+        stage.setOnShown(windowEvent -> {
+            stage.setMaxHeight(stage.getHeight());
+            stage.setMaxWidth(stage.getWidth());
+        });
+        stage.show();
     }
 }
 

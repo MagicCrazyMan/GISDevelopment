@@ -7,21 +7,16 @@ import com.esri.arcgisruntime.data.Field;
 import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.layers.Layer;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
 import javafx.stage.WindowEvent;
 import javafx.util.StringConverter;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Consumer;
 
 public class QueryByAttributeController extends AController {
 
@@ -32,6 +27,7 @@ public class QueryByAttributeController extends AController {
     public Button fetchUniqueValueButton;
     public Label featureLayerText;
     private AppController appController;
+    private CommonController commonController = new CommonController();
 
     public AppController getAppController() {
         return appController;
@@ -49,7 +45,7 @@ public class QueryByAttributeController extends AController {
 
     @FXML
     public void initialize() {
-        featureFieldsListView.setCellFactory(param -> new SqlSelectableFieldCell());
+        featureFieldsListView.setCellFactory(param -> new SelectableFieldCell());
         featureFieldsListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         featureFieldsListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             fetchUniqueValueButton.setDisable(false);
@@ -61,7 +57,7 @@ public class QueryByAttributeController extends AController {
                 insertSqlStatement(String.format("\"%s\"", featureFieldsListView.getSelectionModel().getSelectedItem().getName()));
             }
         });
-        featureUniqueAttributesListView.setCellFactory(param -> new SqlSelectableAttributeCell());
+        featureUniqueAttributesListView.setCellFactory(param -> new SelectableAttributeCell());
         featureUniqueAttributesListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         featureUniqueAttributesListView.getItems().addListener((ListChangeListener<Object>) c -> featureUniqueAttributesListView.setDisable(c.getList().isEmpty()));
         featureUniqueAttributesListView.setOnMouseClicked(event -> {
@@ -92,6 +88,7 @@ public class QueryByAttributeController extends AController {
             featureFieldsListView.getItems().clear();
             featureUniqueAttributesListView.getItems().clear();
             featureFieldsListView.getItems().addAll(newValue.getFeatureTable().getFields());
+
             featureFieldsListView.getSelectionModel().selectFirst();
         });
     }
@@ -117,9 +114,9 @@ public class QueryByAttributeController extends AController {
 
     public void insertSqlStatement(String insertion) {
         if (sqlStatementText.getCaretPosition() == 0) {
-            sqlStatementText.setText(sqlStatementText.getText() + insertion);
+            sqlStatementText.setText(sqlStatementText.getText() + insertion + " ");
         } else {
-            sqlStatementText.insertText(sqlStatementText.getCaretPosition(), insertion);
+            sqlStatementText.insertText(sqlStatementText.getCaretPosition(), insertion + " ");
         }
     }
 
@@ -195,19 +192,29 @@ public class QueryByAttributeController extends AController {
 
         QueryParameters queryParameters = new QueryParameters();
         queryParameters.setWhereClause(sqlStatementText.getText());
-        featureLayersChoiceBox.getValue().selectFeaturesAsync(queryParameters, FeatureLayer.SelectionMode.NEW);
+        ListenableFuture<FeatureQueryResult> future = featureLayersChoiceBox.getValue().selectFeaturesAsync(queryParameters, FeatureLayer.SelectionMode.NEW);
+        future.addDoneListener(() -> {
+            try {
+                commonController.showQueryResult(future.get());
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public void onCancel(ActionEvent actionEvent) {
-        parentStage.close();
-        parentStage.getOnCloseRequest().handle(new WindowEvent(parentStage, Event.ANY));
+        WindowEvent windowEvent = new WindowEvent(parentStage, WindowEvent.WINDOW_CLOSE_REQUEST);
+        WindowEvent.fireEvent(parentStage, windowEvent);
+        if (!windowEvent.isConsumed()) {
+            parentStage.close();
+        }
     }
 
     public void onSqlClear(ActionEvent actionEvent) {
         sqlStatementText.setText("");
     }
 
-    public static class SqlSelectableFieldCell extends ListCell<Field> {
+    public static class SelectableFieldCell extends ListCell<Field> {
         @Override
         protected void updateItem(Field item, boolean empty) {
             super.updateItem(item, empty);
@@ -221,7 +228,7 @@ public class QueryByAttributeController extends AController {
         }
     }
 
-    public static class SqlSelectableAttributeCell extends ListCell<Object> {
+    public static class SelectableAttributeCell extends ListCell<Object> {
         @Override
         protected void updateItem(Object item, boolean empty) {
             super.updateItem(item, empty);
@@ -232,8 +239,9 @@ public class QueryByAttributeController extends AController {
             } else {
                 if (item instanceof Number) {
                     setText(item.toString());
+                } else {
+                    setText(String.format("'%s'", item.toString()));
                 }
-                setText(String.format("'%s'", item.toString()));
             }
         }
     }
