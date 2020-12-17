@@ -20,7 +20,7 @@ import java.util.concurrent.ExecutionException;
 
 public class QueryByLocationController extends AController {
     public enum SelectMethod {
-        POINT, ENVELOP
+        POINT, POLYGON
     }
 
     public ListView<CheckBox> fromFeatureLayersListView;
@@ -72,6 +72,7 @@ public class QueryByLocationController extends AController {
     public void setParentStage(Stage stage) {
         super.setParentStage(stage);
         stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, windowEvent -> sketchEditor.stop());
+        stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, windowEvent -> appController.clickBehaviour = AppController.ClickBehaviours.SELECTED_FEATURE);
     }
 
     @FXML
@@ -98,7 +99,6 @@ public class QueryByLocationController extends AController {
         fromFeatureLayersListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
     }
 
-
     public void onApply(ActionEvent actionEvent) {
         if (((ToggleButton) actionEvent.getSource()).isSelected()) {
             appController.clickBehaviour = AppController.ClickBehaviours.QUERY_BY_LOCATION;
@@ -107,7 +107,7 @@ public class QueryByLocationController extends AController {
                 case POINT:
                     sketchEditor.start(SketchCreationMode.POINT);
                     break;
-                case ENVELOP:
+                case POLYGON:
                     sketchEditor.start(SketchCreationMode.POLYGON);
                     break;
                 default:

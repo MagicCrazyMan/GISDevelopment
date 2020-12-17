@@ -72,7 +72,6 @@ public class AppController extends AController {
     public enum ClickBehaviours {
         NULL,
         SELECTED_FEATURE,
-        SELECTED_FEATURE_AND_QUERY,
         IDENTITY_QUERY,
         DRAWING,
         SKETCH_EDITOR,
@@ -190,22 +189,28 @@ public class AppController extends AController {
             if (Objects.nonNull(layerPane)) {
                 switch (listChangedEvent.getAction()) {
                     case ADDED: {
-                        Layer layer = listChangedEvent.getItems().get(0);
-                        layer.addDoneLoadingListener(() -> {
-                            if (layer.getLoadStatus().equals(LoadStatus.LOADED)) {
-                                // init a pane as layer graphic
-                                String name = layer.getName();
-                                String id = layer.getId();
-                                RadioButton radioButton = new RadioButton(name);
-                                radioButton.setId(id);
-                                radioButton.setSelected(true);
-                                radioButton.selectedProperty().addListener((observableValue, aBoolean, t1) -> layer.setVisible(t1));
-                                radioButton.setOnContextMenuRequested(contextMenuEvent -> {
-                                    if (radioButton.contextMenuProperty().isNull().get()) {
+                        Layer layer1 = listChangedEvent.getItems().get(0);
+                        layer1.addDoneLoadingListener(() -> {
+                            if (layer1.getLoadStatus().equals(LoadStatus.LOADED)) {
+                                layerPane.getChildren().clear();
+
+                                ArrayList<Layer> tempList = new ArrayList<>(mainMap.getOperationalLayers());
+                                Collections.reverse(tempList);
+                                for (Layer layer : tempList) {
+                                    // init a pane as layer graphic
+                                    LayerList operationalLayers = mainMap.getOperationalLayers();
+                                    String name = layer.getName();
+                                    RadioButton radioButton = new RadioButton(name);
+                                    radioButton.setMaxWidth(Integer.MAX_VALUE);
+                                    radioButton.setUserData(layer);
+                                    radioButton.setSelected(layer.isVisible());
+                                    radioButton.selectedProperty().addListener((observableValue, aBoolean, t1) -> layer.setVisible(t1));
+                                    radioButton.setOnContextMenuRequested(contextMenuEvent -> {
                                         ContextMenu contextMenu = new ContextMenu();
                                         MenuItem zoomTo = new MenuItem("Zoom To");
                                         MenuItem remove = new MenuItem("Remove");
                                         zoomTo.setOnAction(actionEvent -> mainMapView.setViewpointGeometryAsync(layer.getFullExtent(), 50));
+                                        remove.setOnAction(actionEvent -> operationalLayers.remove(layer));
                                         if (layer instanceof FeatureLayer) {
                                             MenuItem renderer = new MenuItem("Renderer");
                                             renderer.setOnAction(new EventHandler<>() {
@@ -237,20 +242,51 @@ public class AppController extends AController {
                                             });
                                             contextMenu.getItems().add(renderer);
                                         }
-                                        remove.setOnAction(actionEvent -> mainMap.getOperationalLayers().remove(layer));
 
-                                        contextMenu.getItems().addAll(zoomTo, remove);
-                                        radioButton.contextMenuProperty().set(contextMenu);
-                                    }
-                                });
-                                layerPane.getChildren().add(radioButton);
+                                        MenuItem moveUp = new MenuItem("Move Up");
+                                        MenuItem moveDown = new MenuItem("Move Down");
+                                        if (operationalLayers.size() >= 2) {
+                                            int index = operationalLayers.indexOf(layer);
+                                            if (index >= 1) {
+                                                moveDown.setOnAction(actionEvent -> {
+                                                    Layer previousLayer = operationalLayers.get(index - 1);
+                                                    operationalLayers.remove(previousLayer);
+                                                    operationalLayers.add(index, previousLayer);
+                                                });
+                                            } else {
+                                                moveDown.setDisable(true);
+                                            }
+
+                                            if (index < operationalLayers.size() - 1) {
+                                                moveUp.setOnAction(actionEvent -> {
+                                                    Layer nextLayer = operationalLayers.get(index + 1);
+                                                    operationalLayers.remove(nextLayer);
+                                                    operationalLayers.add(index, nextLayer);
+                                                });
+                                            } else {
+                                                moveUp.setDisable(true);
+                                            }
+                                        } else {
+                                            moveDown.setDisable(true);
+                                            moveUp.setDisable(true);
+                                        }
+
+                                        contextMenu.getItems().addAll(zoomTo, remove, moveUp, moveDown);
+                                        if (Objects.nonNull(radioButton.contextMenuProperty().get())) {
+                                            radioButton.contextMenuProperty().get().hide();
+                                        }
+                                        contextMenu.show(parentStage, contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
+                                        radioButton.contextMenuProperty().setValue(contextMenu);
+                                    });
+                                    layerPane.getChildren().add(radioButton);
+                                }
                             }
                         });
                         break;
                     }
                     case REMOVED: {
                         Layer layer = listChangedEvent.getItems().get(0);
-                        layerPane.getChildren().removeIf(node -> node.getId().equals(layer.getId()));
+                        layerPane.getChildren().removeIf(node -> node.getUserData().equals(layer));
                         break;
                     }
                 }
@@ -399,19 +435,13 @@ public class AppController extends AController {
                             switch (clickBehaviour) {
                                 case IDENTITY_QUERY: {
                                     if (mainMap.getOperationalLayers().size() > 0) {
-                                        commonController.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), screenPoint);
+                                        commonController.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), mapPoint, true);
                                     }
                                     break;
                                 }
                                 case SELECTED_FEATURE: {
                                     if (mainMap.getOperationalLayers().size() > 0) {
                                         commonController.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), mapPoint, false);
-                                    }
-                                    break;
-                                }
-                                case SELECTED_FEATURE_AND_QUERY: {
-                                    if (mainMap.getOperationalLayers().size() > 0) {
-                                        commonController.clickQuery(mainMapView, (FeatureLayer) mainMap.getOperationalLayers().get(0), mapPoint, true);
                                     }
                                     break;
                                 }
@@ -467,10 +497,11 @@ public class AppController extends AController {
     }
 
     public void onExit(ActionEvent actionEvent) {
-        if (Objects.nonNull(parentStage.getOnCloseRequest())) {
-            parentStage.getOnCloseRequest().handle(new WindowEvent(parentStage, WindowEvent.WINDOW_CLOSE_REQUEST));
+        WindowEvent windowEvent = new WindowEvent(parentStage, WindowEvent.WINDOW_CLOSE_REQUEST);
+        WindowEvent.fireEvent(parentStage, windowEvent);
+        if (!windowEvent.isConsumed()) {
+            parentStage.close();
         }
-        parentStage.close();
     }
 
     public void onZoomIn(ActionEvent actionEvent) {
@@ -485,7 +516,6 @@ public class AppController extends AController {
         // this is a tricky way to achieve zooming to full extent, all we have to do is that, set scale to a large enough value (but not too large)
         // MapView will automatically limit scale to the max scale value
         mainMapView.setViewpointScaleAsync(1E20);
-
     }
 
     public void onClockwiseRotate(ActionEvent actionEvent) {
@@ -541,11 +571,11 @@ public class AppController extends AController {
             ToggleGroup toggleGroup = new ToggleGroup();
             identityBtn.setToggleGroup(toggleGroup);
             selectFeatureBtn.setToggleGroup(toggleGroup);
-            clickBehaviour = ClickBehaviours.SELECTED_FEATURE_AND_QUERY;
+            clickBehaviour = ClickBehaviours.SELECTED_FEATURE;
             selectFeatureBtn.setSelected(true); // select feature is default
             selectFeatureBtn.setOnAction(actionEvent1 -> {
                 identityBtn.setSelected(false);
-                clickBehaviour = ClickBehaviours.SELECTED_FEATURE_AND_QUERY;
+                clickBehaviour = ClickBehaviours.SELECTED_FEATURE;
             });
             identityBtn.setOnAction(actionEvent1 -> {
                 selectFeatureBtn.setSelected(false);

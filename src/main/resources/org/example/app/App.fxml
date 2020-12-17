@@ -56,9 +56,9 @@
          <children>
             <SplitPane dividerPositions="0.0" HBox.hgrow="ALWAYS">
                <items>
-                  <ScrollPane fx:id="layerScrollPane" minWidth="150.0" prefWidth="150.0" SplitPane.resizableWithParent="false">
+                  <ScrollPane fx:id="layerScrollPane" fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="150.0" SplitPane.resizableWithParent="false">
                      <content>
-                        <VBox fx:id="layerPane" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="150.0" spacing="15.0">
+                        <VBox fx:id="layerPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" spacing="10.0">
                            <padding>
                               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                            </padding>
@@ -119,7 +119,7 @@
                                     </ToolBar>
                                     <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" style="-fx-background-color: transparent; -fx-padding: 0px;">
                                        <items>
-                                          <Button fx:id="loadOnlineDataBtn" mnemonicParsing="false" onAction="#onLoadOnlineData" text="Loal Online Data" />
+                                          <Button fx:id="loadOnlineDataBtn" mnemonicParsing="false" onAction="#onLoadOnlineData" text="Load Online Data" />
                                           <TextField fx:id="onlineDataURLText" minWidth="-Infinity" prefWidth="300.0" />
                                           <ChoiceBox fx:id="onlineDataTypeChoiceBox" minWidth="-Infinity" prefWidth="150.0" />
                                        </items>

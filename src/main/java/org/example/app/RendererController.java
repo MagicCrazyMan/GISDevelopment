@@ -28,7 +28,9 @@ import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
 import java.io.UnsupportedEncodingException;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -328,7 +330,7 @@ public class RendererController extends AController {
                                     new SimpleLineSymbol(
                                             SimpleLineSymbol.Style.SOLID,
                                             commonController.color2int(Color.BLACK),
-                                         2
+                                            2
                                     )
                             );
 
@@ -581,6 +583,13 @@ public class RendererController extends AController {
     }
 
     public static class ClassBreakerClassesTableCell extends TableCell<SelectableRowProperty, ClassBreakerRowValueRange> {
+        private static NumberFormat numberFormat = NumberFormat.getNumberInstance();
+
+        static {
+            numberFormat.setMaximumFractionDigits(6);
+            numberFormat.setRoundingMode(RoundingMode.HALF_UP);
+        }
+
         @Override
         protected void updateItem(ClassBreakerRowValueRange item, boolean empty) {
             super.updateItem(item, empty);
@@ -588,7 +597,7 @@ public class RendererController extends AController {
                 setGraphic(null);
                 setText(null);
             } else {
-                setText(String.format("%s - %s", item.getStart().toString(), item.getEnd().toString()));
+                setText(String.format("%s - %s", numberFormat.format(item.getStart().doubleValue()), numberFormat.format(item.getEnd().doubleValue())));
             }
         }
     }
